@@ -1,0 +1,32 @@
+# EditorConfig configuration for Monorepo (Spring Boot + React)
+root = true
+
+# Global defaults
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Backend - Java specific configuration
+[{*.java}]
+indent_size = 4
+max_line_length = 120
+
+# Frontend - Web development defaults (React, TypeScript, Styling)
+[{*.js,*.jsx,*.ts,*.tsx,*.html,*.css,*.scss}]
+indent_size = 2
+
+# Configuration, Build and Data formats
+[{*.json,*.xml,*.yml,*.yaml}]
+indent_size = 2
+
+# Database migrations (Liquibase SQL files)
+[{*.sql}]
+indent_size = 4
+
+# Documentation (Markdown files for Copilot)
+[{*.md}]
+indent_size = 2
+trim_trailing_whitespace = false
