@@ -34,3 +34,13 @@
 5. **Local Security Bypass:** Implement a `no-security` Spring Profile that registers a permissive `SecurityFilterChain` (`permitAll()`) for rapid local development and testing.
 6. **Test Mocking:** When writing `@SpringBootTest` or `@WebMvcTest` architecture tests, use `@WithMockUser` or Spring Security's Test support to safely mock JWT authentication context without requiring an active IdP.
 7. **CORS Configuration:** Do not hardcode CORS origins. Configure CORS via a dedicated bean that reads allowed origins from Spring `@ConfigurationProperties`.
+
+## Coding Standards
+
+### Package Structure
+- All Java classes must be placed within the base package structure: `com.rvdijkz`
+- Do not use generic top-level packages outside of this namespace.
+- Example structure:
+    - `com.rvdijkz.controller`
+    - `com.rvdijkz.service`
+    - `com.rvdijkz.repository`
