@@ -38,9 +38,9 @@
 ## Coding Standards
 
 ### Package Structure
-- All Java classes must be placed within the base package structure: `com.rvdijkz`
+- All Java classes must be placed within the base package structure: `com.rvdijkz.tour`
 - Do not use generic top-level packages outside of this namespace.
 - Example structure:
-    - `com.rvdijkz.controller`
-    - `com.rvdijkz.service`
-    - `com.rvdijkz.repository`
+    - `com.rvdijkz.tour.controller`
+    - `com.rvdijkz.tour.service`
+    - `com.rvdijkz.tour.repository`
