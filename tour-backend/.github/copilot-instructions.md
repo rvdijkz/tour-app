@@ -1,5 +1,10 @@
 # Backend Copilot Instructions
 
+## Project Context
+- Monorepo root: See `../.github/agents.md` for overall project governance
+- Shared patterns: See `../.github/copilot-instructions.md`
+- Frontend expectations: See `../tour-frontend/.github/copilot-instructions.md`
+
 ## Technical Stack
 * Java 21+ (Leverage modern Java features like Records, Pattern Matching, and Switch Expressions where applicable).
 * Maven 3
@@ -23,7 +28,7 @@
 1. **Spec Before Code:** Before generating any new endpoint or modifying an existing one, stop and ask to update the OpenAPI specification file first.
 2. **Code Generation:** Use the `openapi-generator-maven-plugin` to generate backend stub interfaces and DTO models.
 3. **Implementation Only:** Implement the generated interfaces in your Driving Adapters (Controllers). Never modify the generated code directly; only configure the generator plugin if changes to the output structure are needed.
-4. **Validation:** Ensure JSR-383 validation annotations (e.g., `@Valid`, `@NotNull`) are fully driven by the OpenAPI constraints and generated into the models automatically.
+4. **Validation:** Ensure JSR-380 validation annotations (e.g., `@Valid`, `@NotNull`) are fully driven by the OpenAPI constraints and generated into the models automatically.
 5. **Target Directory:** Ensure all generated source files from the OpenAPI plugin land within the target directory of `/tour-backend`. Never commit generated code to version control.
 
 ## Spring Security & OAuth2 Implementation Rules
