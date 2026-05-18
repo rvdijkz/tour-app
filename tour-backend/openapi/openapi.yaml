@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: Tour Backend API
+  version: 0.1.0
+  description: Initial API contract for the Tour backend service.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/health:
+    get:
+      tags:
+        - System
+      operationId: getHealth
+      summary: Basic health endpoint contract
+      responses:
+        '200':
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/v1/info:
+    get:
+      tags:
+        - System
+      operationId: getSystemInfo
+      summary: Basic system info contract
+      responses:
+        '200':
+          description: Basic service info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemInfoResponse'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          example: UP
+        timestamp:
+          type: string
+          format: date-time
+    SystemInfoResponse:
+      type: object
+      required:
+        - serviceName
+        - version
+      properties:
+        serviceName:
+          type: string
+          example: tour-backend
+        version:
+          type: string
+          example: 0.0.1-SNAPSHOT
+

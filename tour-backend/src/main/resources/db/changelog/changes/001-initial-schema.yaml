@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-app-metadata
+      author: copilot
+      changes:
+        - createTable:
+            tableName: app_metadata
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: app_key
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: app_value
+                  type: VARCHAR(500)
+                  constraints:
+                    nullable: false
+
