@@ -34,3 +34,5 @@ mvn spring-boot:run -Dspring-boot.run.profiles=no-security
 - Generated OpenAPI code is configured to output to `target/generated-sources/openapi` and should not be committed.
 - Default `application.yml` values are local placeholders; adjust datasource and issuer URI for your environment.
 
+## TODO
+
