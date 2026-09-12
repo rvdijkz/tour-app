@@ -1,5 +1,10 @@
 # Backend Copilot Instructions
 
+## Project Context
+- Monorepo root: See `../.github/agents.md` for overall project governance
+- Shared patterns: See `../.github/copilot-instructions.md`
+- Frontend expectations: See `../tour-frontend/.github/copilot-instructions.md`
+
 ## Technical Stack
 * Java 21+ (Leverage modern Java features like Records, Pattern Matching, and Switch Expressions where applicable).
 * Maven 3
@@ -23,7 +28,7 @@
 1. **Spec Before Code:** Before generating any new endpoint or modifying an existing one, stop and ask to update the OpenAPI specification file first.
 2. **Code Generation:** Use the `openapi-generator-maven-plugin` to generate backend stub interfaces and DTO models.
 3. **Implementation Only:** Implement the generated interfaces in your Driving Adapters (Controllers). Never modify the generated code directly; only configure the generator plugin if changes to the output structure are needed.
-4. **Validation:** Ensure JSR-383 validation annotations (e.g., `@Valid`, `@NotNull`) are fully driven by the OpenAPI constraints and generated into the models automatically.
+4. **Validation:** Ensure JSR-380 validation annotations (e.g., `@Valid`, `@NotNull`) are fully driven by the OpenAPI constraints and generated into the models automatically.
 5. **Target Directory:** Ensure all generated source files from the OpenAPI plugin land within the target directory of `/tour-backend`. Never commit generated code to version control.
 
 ## Spring Security & OAuth2 Implementation Rules
@@ -34,6 +39,34 @@
 5. **Local Security Bypass:** Implement a `no-security` Spring Profile that registers a permissive `SecurityFilterChain` (`permitAll()`) for rapid local development and testing.
 6. **Test Mocking:** When writing `@SpringBootTest` or `@WebMvcTest` architecture tests, use `@WithMockUser` or Spring Security's Test support to safely mock JWT authentication context without requiring an active IdP.
 7. **CORS Configuration:** Do not hardcode CORS origins. Configure CORS via a dedicated bean that reads allowed origins from Spring `@ConfigurationProperties`.
+
+## Development vs Production Security Strategy
+* **Development Profile (`dev`):**
+  - Security is **disabled** — all endpoints are `permitAll()`.
+  - No JWT validation required.
+  - CORS is permissive to allow local React frontend (`http://localhost:5173`, etc.) to connect without restrictions.
+  - Use `application-dev.yml` with H2 in-memory database for rapid iteration.
+  - Implement placeholder `@PreAuthorize` annotations on controllers (ready for future security) but they will not be enforced in dev mode.
+  - Example unprotected endpoints: `/api/health`, `/api/tours`, `/api/users`.
+
+* **Production Profile (`prod`):**
+  - Security is **enforced** — all endpoints require valid JWT tokens.
+  - Configure OAuth2 Resource Server to validate JWTs against Keycloak (or external IdP).
+  - Strict CORS: Only allow whitelisted origins from environment variables.
+  - Use `application-prod.yml` with PostgreSQL connection details.
+  - Mandatory `@PreAuthorize` annotations on controllers are actively enforced.
+  - All sensitive endpoints behind proper scope/role checks.
+
+* **Configuration Structure:**
+  - `application.yml` — Common configuration (activates profiles, logging, actuator settings).
+  - `application-dev.yml` — Dev-specific: H2 database, disabled security, permissive CORS, `no-security` profile active.
+  - `application-prod.yml` — Prod-specific: PostgreSQL, JWT validation config, strict CORS, security profile active.
+
+* **No Refactoring Needed Later:**
+  - Structure all code now assuming OAuth2 Resource Server will be active in production.
+  - Controllers are decorated with `@PreAuthorize` today (even if not enforced in dev).
+  - The transition from dev to prod is purely configuration-driven (Spring profile activation).
+  - No code changes required to enable Keycloak/OIDC integration — only configuration updates.
 
 ## Coding Standards
 

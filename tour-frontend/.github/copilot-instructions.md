@@ -1,8 +1,14 @@
 # Frontend Copilot Instructions
 
+## Project Context
+- Monorepo root: See `../.github/agents.md` for overall project governance
+- Shared patterns: See `../.github/copilot-instructions.md`
+- Backend API: See `../tour-backend/.github/copilot-instructions.md` for contracts
+
 ## Technical Stack
 * React (Latest stable version)
 * TypeScript (Strict mode enabled)
+* Vite (Build tooling and dev server)
 
 ## Educational & Code Style Requirements (Developer is Learning)
 1. **Explain the 'Why':** When writing or modifying components, briefly explain the reasoning behind your architectural choices (e.g., why a specific Hook or state structure was chosen).

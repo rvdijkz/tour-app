@@ -3,7 +3,7 @@
 ## Repository Structure
 This is a monorepo containing both the backend and frontend services.
 * `/tour-backend` - Spring Boot 3 API (Hexagonal Architecture)
-* `/tour-fronten` - React TypeScript SPA
+* `/tour-frontend` - React TypeScript SPA
 
 ## Tech Stack Summary
 * **Backend:** Java 21+, Maven 3, Spring Boot 3, Spring Security, JPA/Hibernate, Liquibase, PostgreSQL.
@@ -18,6 +18,6 @@ This is a monorepo containing both the backend and frontend services.
 * **Stateless Backend:** The backend does not maintain HTTP sessions (`SessionCreationPolicy.STATELESS`). Every request must contain a valid Bearer JWT.
 
 ## General Agent Rules
-1. **Context Awareness:** Always check if your task applies to the `/backend` or `/frontend` directory.
+1. **Context Awareness:** Always check if your task applies to the `/tour-backend` or `/tour-frontend` directory.
 2. **Architecture Enforcement:** Do not mix frontend and backend paradigms. Follow the specific instructions inside each directory.
 3. **API Alignment:** All code modifications touching the API boundary must strictly align with the OpenAPI specification.
