@@ -1,7 +1,7 @@
 # Frontend Copilot Instructions
 
 ## Project Context
-- Monorepo root: See `../.github/agents.md` for overall project governance
+- Monorepo root: See `../.github/AGENTS.md` for overall project governance
 - Shared patterns: See `../.github/copilot-instructions.md`
 - Backend API: See `../tour-backend/.github/copilot-instructions.md` for contracts
 
