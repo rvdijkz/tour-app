@@ -1,7 +1,7 @@
 Dit is de beschrijving van het tour spel.
 
 Overview:
-Het betreft een web applicatie voor een wielerronde spel ('Tour de france' of 'GIRO' of 'Vuelta', configureerbaar). Spelers (spel deelnemers, met rol speler) kunnen een team samenstellen door een aantal 
+Het betreft een web applicatie voor een wielerronde spel ('Tour de france' of 'GIRO' of 'Vuelta', configureerbaar). Spelers (spel deelnemers, met rol speler) kunnen een team samenstellen door een aantal
 Renners (wielrenners uit de wielerronde) te kiezen op basis van spel voorwaarden. Hiervoor wordt een GUI beschikbaar gesteld.
 Spelers kunnen tot een configureerbaar tijdstip wijzigingen aanbrengen. Na het tijdstip (vlak voor de wielerronde begint) kan de ingevoerde data alleen nog gelezen worden.
 Er moet ook een rol komen voor een admin.
@@ -19,17 +19,18 @@ Elke Renner krijgt punten toegekend (waarde Renner). Een Renner heeft een landen
 Een Renner kan tijdens het spel uitvallen.
 
 Admin:
-vult alle relevante data in na elke ettape. Dus alle data die nodig is om te puntentelling uit te voeren.
-Dit zijn wielerronde rugnummers van etappe posities 1 tot en met 20. De laatse 5 posities. 
+vult alle relevante data in na elke etappe. Dus alle data die nodig is om te puntentelling uit te voeren.
+Dit zijn wielerronde rugnummers van etappe posities 1 tot en met 20. De laatse 5 posities.
 Truien: En de gele-trui, bollen-trui, witte-trui en groene-trui.
-Strijdlust: En de strijdlustigste Renner indien aaanwezig.
+Strijdlust: En de strijdlustigste Renner indien aanwezig.
 Daarnaast de wielerronde rugnummers van uitvallers indien aanwezig.
+Het moet mogelijk zijn om wijzigingen aan te brengen in de laatst ingevoerde etappe uitslag.
 
 Team:
 Een speler stelt een team samen. Een team bestaat uit 14 Renners. Posities 1 tot en met 10 zijn Standaard Renners. Positie 11 moet Renner met een bepaalde (te configureren) Nationaliteit hebben. Posities 12 en 13 zijn Reserve Renners. Respectievelijk Reserve 1 en Reserve 2. Postitie 14 is de kluns Renner.
 Je mag een maximaal aantal punten per Team besteden. Dit is opgedeeld in een maximum voor de Standaard Renners plus de Renner met de Nationaliteit. En een configureerbaar maximum voor de Reserve Renners. De kluns heeft geen beperking in punten.
-Naast het team moet ook worden ingevoerd hoeveel Renners het einde van het spel halen. Er kunnen tussentijds Renners uitvallen.
 Een Renner mag maar een keer voorkomen in het team.
+Naast het team moet ook worden ingevoerd hoeveel Renners uiteindelijk na 21 etappes Parijs halen. Er kunnen namemelijk tussentijds Renners uitvallen.
 
 Puntentelling:
 Na elke etappe vindt er een puntentelling plaats. Dit zijn de regels.
@@ -40,7 +41,7 @@ Een Renner kan uitvallen. Als een Renner op positie 1 tot en met 10 uitvalt of d
 
 Als er een of meer Renners uitvalen worden deze vervangen door de Reserve Renners. De eerste reserve neemt de hoogste uitgevallen plek in. Indien meer uitvallers dan zal de tweede Reserve Renner de daarna hoogste plek.
 Dit geldt voor plek 1 tot en met 11.
-De ingevallen Reserver Renner gaat pas de volgende etappe meedoen voor de puntentelling. 
+De ingevallen Reserver Renner gaat pas de volgende etappe meedoen voor de puntentelling.
 Als een Reserve Renner uitvalt voordat hij is ingevallen, worden geen punten in mindering gebracht. De uitgevallen Reserve Renner is niet meer beschikbaar om in te vallen.
 
 De Renner op positie 11 heeft een andere puntenteling. De reguliere puntentelling geldt tot en met positie 8. Echter etappe posities 9 tot en met 20 leveren 3 punten op.
@@ -63,6 +64,8 @@ Is de kluns nummer 11 tot en met 20 in etappe dan worden 5 punten in mindering g
 Is de kluns nummer 2 tot en met 9 in etappe dan worden 10 punten in mindering gebracht.
 Is de kluns nummer 1 in etappe dan worden 15 punten in mindering gebracht.
 
+Bij de definitieve puntentelling na de laatste etappe (etappe 21) geeft bij gelijke uitslag het aantal voorspelde renners dat parijs haalt de doorslag. Dus degene die er het dichst bij zit wint dan.
+
 Model info
 Speler. Deelnemer spel met een username en wachtwaard.
 Renner. Deelnemer van de wielerronde.
@@ -81,8 +84,3 @@ GUI
 -Stand (na iedere etappe moet een nieuwe stand worden gepubliceerd)
 -Lijst van beschikbare Renners met hun nationaliteit en waarde (punten) en spel rugnummer. Deze lijst moet sorteerbaar zijn op rugnummer, punten en nationaliteit.
 -Vanuit stand doorklikken: Stand details per Speler (Met welke Renners in het team zijn punten gehaald en voor welke puntentelling voorwaarde)
-
-
-
- 
-
