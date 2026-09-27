@@ -10,6 +10,8 @@ Treat the approved specification files in this workspace as the source of truth 
 
 Prefer small, focused specification files over large monolithic documents.
 
+Write all specifications in English.
+
 Clearly distinguish requirements, design decisions, assumptions, open questions, acceptance criteria, and implementation details.
 
 Before changing an existing specification, check whether the change affects other specifications or architectural documents.
