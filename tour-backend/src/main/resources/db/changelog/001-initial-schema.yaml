@@ -1,0 +1,405 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-edition
+      author: copilot
+      changes:
+        - createTable:
+            tableName: edition
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: year
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: entry_deadline
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reserve_budget
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: required_nationality
+                  type: VARCHAR(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: current_stage
+                  type: INT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-create-edition-double-points-stage
+      author: copilot
+      changes:
+        - createTable:
+            tableName: edition_double_points_stage
+            columns:
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stage_number
+                  type: INT
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: edition_double_points_stage
+            columnNames: edition_id, stage_number
+            constraintName: pk_edition_double_points_stage
+        - addForeignKeyConstraint:
+            baseTableName: edition_double_points_stage
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_edps_edition
+
+  - changeSet:
+      id: 003-create-rider
+      author: copilot
+      changes:
+        - createTable:
+            tableName: rider
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: game_rider_number
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: race_bib_number
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nationality
+                  type: VARCHAR(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: withdrawn
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: rider
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_rider_edition
+
+  - changeSet:
+      id: 004-create-standing
+      author: copilot
+      changes:
+        - createTable:
+            tableName: standing
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stage
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rank_position
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: player_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: player_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: team_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_points
+                  type: INT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: standing
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_standing_edition
+
+  - changeSet:
+      id: 005-create-stage-history
+      author: copilot
+      changes:
+        - createTable:
+            tableName: stage_history
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: player_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stage
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stage_points
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_points
+                  type: INT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: stage_history
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_stage_history_edition
+
+  - changeSet:
+      id: 006-seed-sample-data
+      author: copilot
+      changes:
+        - insert:
+            tableName: edition
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: year
+                  valueNumeric: 2026
+              - column:
+                  name: entry_deadline
+                  valueDate: 2026-12-31T20:00:00Z
+              - column:
+                  name: reserve_budget
+                  valueNumeric: 20
+              - column:
+                  name: required_nationality
+                  value: FRA
+              - column:
+                  name: current_stage
+                  valueNumeric: 1
+
+        - insert:
+            tableName: edition_double_points_stage
+            columns:
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: stage_number
+                  valueNumeric: 5
+
+        - insert:
+            tableName: edition_double_points_stage
+            columns:
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: stage_number
+                  valueNumeric: 12
+
+        - insert:
+            tableName: rider
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: game_rider_number
+                  valueNumeric: 1
+              - column:
+                  name: race_bib_number
+                  valueNumeric: 1
+              - column:
+                  name: name
+                  value: Rider One
+              - column:
+                  name: value
+                  valueNumeric: 25
+              - column:
+                  name: nationality
+                  value: NLD
+              - column:
+                  name: withdrawn
+                  valueBoolean: false
+
+        - insert:
+            tableName: rider
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 2
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: game_rider_number
+                  valueNumeric: 2
+              - column:
+                  name: race_bib_number
+                  valueNumeric: 2
+              - column:
+                  name: name
+                  value: Rider Two
+              - column:
+                  name: value
+                  valueNumeric: 30
+              - column:
+                  name: nationality
+                  value: BEL
+              - column:
+                  name: withdrawn
+                  valueBoolean: false
+
+        - insert:
+            tableName: standing
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: stage
+                  valueNumeric: 1
+              - column:
+                  name: rank_position
+                  valueNumeric: 1
+              - column:
+                  name: player_id
+                  valueNumeric: 1
+              - column:
+                  name: player_name
+                  value: Player One
+              - column:
+                  name: team_name
+                  value: Team One
+              - column:
+                  name: total_points
+                  valueNumeric: 100
+
+        - insert:
+            tableName: standing
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 2
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: stage
+                  valueNumeric: 1
+              - column:
+                  name: rank_position
+                  valueNumeric: 2
+              - column:
+                  name: player_id
+                  valueNumeric: 2
+              - column:
+                  name: player_name
+                  value: Player Two
+              - column:
+                  name: team_name
+                  value: Team Two
+              - column:
+                  name: total_points
+                  valueNumeric: 95
+
+        - insert:
+            tableName: stage_history
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: edition_id
+                  valueNumeric: 1
+              - column:
+                  name: player_id
+                  valueNumeric: 1
+              - column:
+                  name: stage
+                  valueNumeric: 1
+              - column:
+                  name: stage_points
+                  valueNumeric: 100
+              - column:
+                  name: total_points
+                  valueNumeric: 100
+

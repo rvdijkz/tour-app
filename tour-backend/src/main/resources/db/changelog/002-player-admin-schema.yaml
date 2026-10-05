@@ -1,0 +1,659 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-player-account
+      author: copilot
+      changes:
+        - createTable:
+            tableName: player_account
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: display_name
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password_expires_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-seed-player-account
+      author: copilot
+      changes:
+        - insert:
+            tableName: player_account
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: username
+                  value: player.one
+              - column:
+                  name: display_name
+                  value: Player One
+              - column:
+                  name: password_hash
+                  value: $2a$10$7EqJtq98hPqEX7fNZaFWoOHi6Ykz8A7kaI0s5momkGLumZ5qX6Ts.
+              - column:
+                  name: password_expires_at
+                  valueDate: 2026-12-31T12:00:00Z
+        - insert:
+            tableName: player_account
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 2
+              - column:
+                  name: username
+                  value: player.two
+              - column:
+                  name: display_name
+                  value: Player Two
+              - column:
+                  name: password_hash
+                  value: $2a$10$7EqJtq98hPqEX7fNZaFWoOHi6Ykz8A7kaI0s5momkGLumZ5qX6Ts.
+              - column:
+                  name: password_expires_at
+                  valueDate: 2026-12-31T12:00:00Z
+
+  - changeSet:
+      id: 003-create-player-entry-version
+      author: copilot
+      changes:
+        - createTable:
+            tableName: player_entry_version
+            columns:
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: player_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: team_name
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rider_ids
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: finisher_count_prediction
+                  type: INT
+              - column:
+                  name: submitted_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: player_entry_version
+            columnNames: edition_id, player_id, status
+            constraintName: pk_player_entry_version
+        - addForeignKeyConstraint:
+            baseTableName: player_entry_version
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_player_entry_version_edition
+        - addForeignKeyConstraint:
+            baseTableName: player_entry_version
+            baseColumnNames: player_id
+            referencedTableName: player_account
+            referencedColumnNames: id
+            constraintName: fk_player_entry_version_player
+
+  - changeSet:
+      id: 004-create-player-prediction-version
+      author: copilot
+      changes:
+        - createTable:
+            tableName: player_prediction_version
+            columns:
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: player_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: general_rider_ids
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: points_rider_ids
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: mountains_rider_ids
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: player_prediction_version
+            columnNames: edition_id, player_id, status
+            constraintName: pk_player_prediction_version
+        - addForeignKeyConstraint:
+            baseTableName: player_prediction_version
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_player_prediction_version_edition
+        - addForeignKeyConstraint:
+            baseTableName: player_prediction_version
+            baseColumnNames: player_id
+            referencedTableName: player_account
+            referencedColumnNames: id
+            constraintName: fk_player_prediction_version_player
+
+  - changeSet:
+      id: 005-create-stage-result
+      author: copilot
+      changes:
+        - createTable:
+            tableName: stage_result
+            columns:
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stage_number
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: finishers
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_five
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: yellow_race_bib
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: points_race_bib
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: mountains_race_bib
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: white_race_bib
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: most_combative_race_bib
+                  type: INT
+              - column:
+                  name: withdrawals
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: saved_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: calculated_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: published
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+        - addPrimaryKey:
+            tableName: stage_result
+            columnNames: edition_id, stage_number
+            constraintName: pk_stage_result
+        - addForeignKeyConstraint:
+            baseTableName: stage_result
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_stage_result_edition
+
+  - changeSet:
+      id: 006-create-final-result
+      author: copilot
+      changes:
+        - createTable:
+            tableName: final_result
+            columns:
+              - column:
+                  name: edition_id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: general_top5_rider_ids
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: points_top5_rider_ids
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: mountains_top5_rider_ids
+                  type: VARCHAR(128)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: finisher_count
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: saved_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: calculated_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: published
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: final_result
+            baseColumnNames: edition_id
+            referencedTableName: edition
+            referencedColumnNames: id
+            constraintName: fk_final_result_edition
+
+  - changeSet:
+      id: 007-add-rider-uniqueness
+      author: copilot
+      changes:
+        - addUniqueConstraint:
+            tableName: rider
+            columnNames: edition_id, game_rider_number
+            constraintName: uk_rider_edition_game_number
+        - addUniqueConstraint:
+            tableName: rider
+            columnNames: edition_id, race_bib_number
+            constraintName: uk_rider_edition_race_bib
+
+  - changeSet:
+      id: 008-add-standing-history-player-constraints
+      author: copilot
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: standing
+            baseColumnNames: player_id
+            referencedTableName: player_account
+            referencedColumnNames: id
+            constraintName: fk_standing_player
+        - addForeignKeyConstraint:
+            baseTableName: stage_history
+            baseColumnNames: player_id
+            referencedTableName: player_account
+            referencedColumnNames: id
+            constraintName: fk_stage_history_player
+        - addUniqueConstraint:
+            tableName: standing
+            columnNames: edition_id, stage, player_id
+            constraintName: uk_standing_edition_stage_player
+        - addUniqueConstraint:
+            tableName: stage_history
+            columnNames: edition_id, player_id, stage
+            constraintName: uk_stage_history_edition_player_stage
+
+  - changeSet:
+      id: 009-seed-additional-riders
+      author: copilot
+      changes:
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 3 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 3 }
+              - column: { name: race_bib_number, valueNumeric: 3 }
+              - column: { name: name, value: Rider Three }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 4 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 4 }
+              - column: { name: race_bib_number, valueNumeric: 4 }
+              - column: { name: name, value: Rider Four }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 5 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 5 }
+              - column: { name: race_bib_number, valueNumeric: 5 }
+              - column: { name: name, value: Rider Five }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 6 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 6 }
+              - column: { name: race_bib_number, valueNumeric: 6 }
+              - column: { name: name, value: Rider Six }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 7 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 7 }
+              - column: { name: race_bib_number, valueNumeric: 7 }
+              - column: { name: name, value: Rider Seven }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 8 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 8 }
+              - column: { name: race_bib_number, valueNumeric: 8 }
+              - column: { name: name, value: Rider Eight }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 9 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 9 }
+              - column: { name: race_bib_number, valueNumeric: 9 }
+              - column: { name: name, value: Rider Nine }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 10 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 10 }
+              - column: { name: race_bib_number, valueNumeric: 10 }
+              - column: { name: name, value: Rider Ten }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 11 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 11 }
+              - column: { name: race_bib_number, valueNumeric: 11 }
+              - column: { name: name, value: Rider Eleven }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 12 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 12 }
+              - column: { name: race_bib_number, valueNumeric: 12 }
+              - column: { name: name, value: Rider Twelve }
+              - column: { name: value, valueNumeric: 10 }
+              - column: { name: nationality, value: BEL }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 13 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 13 }
+              - column: { name: race_bib_number, valueNumeric: 13 }
+              - column: { name: name, value: Rider Thirteen }
+              - column: { name: value, valueNumeric: 10 }
+              - column: { name: nationality, value: ITA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 14 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 14 }
+              - column: { name: race_bib_number, valueNumeric: 14 }
+              - column: { name: name, value: Rider Fourteen }
+              - column: { name: value, valueNumeric: 30 }
+              - column: { name: nationality, value: ESP }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 15 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 15 }
+              - column: { name: race_bib_number, valueNumeric: 15 }
+              - column: { name: name, value: Rider Fifteen }
+              - column: { name: value, valueNumeric: 28 }
+              - column: { name: nationality, value: NLD }
+              - column: { name: withdrawn, valueBoolean: false }
+
+  - changeSet:
+      id: 010-seed-entry-validation-riders
+      author: copilot
+      changes:
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 16 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 16 }
+              - column: { name: race_bib_number, valueNumeric: 16 }
+              - column: { name: name, value: Rider Sixteen }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: FRA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 17 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 17 }
+              - column: { name: race_bib_number, valueNumeric: 17 }
+              - column: { name: name, value: Rider Seventeen }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: BEL }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 18 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 18 }
+              - column: { name: race_bib_number, valueNumeric: 18 }
+              - column: { name: name, value: Rider Eighteen }
+              - column: { name: value, valueNumeric: 8 }
+              - column: { name: nationality, value: ITA }
+              - column: { name: withdrawn, valueBoolean: false }
+
+  - changeSet:
+      id: 011-seed-stage-result-riders
+      author: copilot
+      changes:
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 19 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 19 }
+              - column: { name: race_bib_number, valueNumeric: 19 }
+              - column: { name: name, value: Rider Nineteen }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: DEN }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 20 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 20 }
+              - column: { name: race_bib_number, valueNumeric: 20 }
+              - column: { name: name, value: Rider Twenty }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: USA }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 21 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 21 }
+              - column: { name: race_bib_number, valueNumeric: 21 }
+              - column: { name: name, value: Rider Twenty-One }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: GER }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 22 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 22 }
+              - column: { name: race_bib_number, valueNumeric: 22 }
+              - column: { name: name, value: Rider Twenty-Two }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: AUS }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 23 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 23 }
+              - column: { name: race_bib_number, valueNumeric: 23 }
+              - column: { name: name, value: Rider Twenty-Three }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: GBR }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 24 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 24 }
+              - column: { name: race_bib_number, valueNumeric: 24 }
+              - column: { name: name, value: Rider Twenty-Four }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: SUI }
+              - column: { name: withdrawn, valueBoolean: false }
+        - insert:
+            tableName: rider
+            columns:
+              - column: { name: id, valueNumeric: 25 }
+              - column: { name: edition_id, valueNumeric: 1 }
+              - column: { name: game_rider_number, valueNumeric: 25 }
+              - column: { name: race_bib_number, valueNumeric: 25 }
+              - column: { name: name, value: Rider Twenty-Five }
+              - column: { name: value, valueNumeric: 12 }
+              - column: { name: nationality, value: NOR }
+              - column: { name: withdrawn, valueBoolean: false }
+
+  - changeSet:
+      id: 012-rename-edition-year-column
+      author: copilot
+      changes:
+        - renameColumn:
+            tableName: edition
+            oldColumnName: year
+            newColumnName: edition_year
+            columnDataType: INT
+
+  - changeSet:
+      id: 013-rename-rider-value-column
+      author: copilot
+      changes:
+        - renameColumn:
+            tableName: rider
+            oldColumnName: value
+            newColumnName: rider_value
+            columnDataType: INT
+
+
+
+
+

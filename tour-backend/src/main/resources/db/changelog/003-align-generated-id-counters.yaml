@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-restart-standing-identity-h2
+      author: copilot
+      preConditions:
+        - onFail: MARK_RAN
+        - dbms:
+            type: h2
+      changes:
+        - sql:
+            sql: ALTER TABLE standing ALTER COLUMN id RESTART WITH 1000
+
+  - changeSet:
+      id: 002-restart-stage-history-identity-h2
+      author: copilot
+      preConditions:
+        - onFail: MARK_RAN
+        - dbms:
+            type: h2
+      changes:
+        - sql:
+            sql: ALTER TABLE stage_history ALTER COLUMN id RESTART WITH 1000
+
+  - changeSet:
+      id: 003-restart-standing-sequence-postgres
+      author: copilot
+      preConditions:
+        - onFail: MARK_RAN
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            sql: SELECT setval(pg_get_serial_sequence('standing', 'id'), 1000, false)
+
+  - changeSet:
+      id: 004-restart-stage-history-sequence-postgres
+      author: copilot
+      preConditions:
+        - onFail: MARK_RAN
+        - dbms:
+            type: postgresql
+      changes:
+        - sql:
+            sql: SELECT setval(pg_get_serial_sequence('stage_history', 'id'), 1000, false)
+
+
