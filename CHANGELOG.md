@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows semantic-ish m
 
 ## [Unreleased]
 
+## [app-v0.1.0] - 2026-10-07
+
+### Added
+- First monorepo application baseline that combines the backend and frontend initial implementations.
+
+## [frontend-v0.1.0] - 2026-10-07
+
 ### Added
 - Initial frontend scaffold in `tour-frontend` (React + TypeScript + Vite).
 - Token-ready HTTP client path for future Bearer token injection.
@@ -40,7 +47,9 @@ The format is based on Keep a Changelog, and this project follows semantic-ish m
 ### Added
 - Approved Tour game specification baseline.
 
-[Unreleased]: https://github.com/rvdijkz/tour-app/compare/backend-v0.1.0...HEAD
+[Unreleased]: https://github.com/rvdijkz/tour-app/compare/app-v0.1.0...HEAD
+[app-v0.1.0]: https://github.com/rvdijkz/tour-app/compare/frontend-v0.1.0...app-v0.1.0
+[frontend-v0.1.0]: https://github.com/rvdijkz/tour-app/compare/backend-v0.1.0...frontend-v0.1.0
 [backend-v0.1.0]: https://github.com/rvdijkz/tour-app/compare/specs-v1.0.0...backend-v0.1.0
 [specs-v1.0.0]: https://github.com/rvdijkz/tour-app/releases/tag/specs-v1.0.0
 
