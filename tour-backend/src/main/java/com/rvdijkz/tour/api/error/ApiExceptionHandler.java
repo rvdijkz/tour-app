@@ -11,6 +11,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -32,6 +33,11 @@ public class ApiExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleValidation(Exception ignored) {
         return ResponseEntity.badRequest().body(build(BAD_REQUEST_CODE, BAD_REQUEST_MESSAGE));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(Exception ignored) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(build("NOT_FOUND", "Resource was not found."));
     }
 
     @ExceptionHandler(Exception.class)
