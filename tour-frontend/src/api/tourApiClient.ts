@@ -1,4 +1,4 @@
-import type { EditionSummary, HealthResponse } from "./types";
+import type { EditionSummary, HealthResponse, PlayerStandingDetail, StandingsResponse } from "./types";
 import type { HttpClient } from "./httpClient";
 
 /**
@@ -17,6 +17,14 @@ export class TourApiClient {
 
   getCurrentEdition(): Promise<EditionSummary> {
     return this.httpClient.request<EditionSummary>("/editions/current");
+  }
+
+  getStandings(editionId: number): Promise<StandingsResponse> {
+    return this.httpClient.request<StandingsResponse>(`/editions/${editionId}/standings`);
+  }
+
+  getPlayerStandingDetail(editionId: number, playerId: number): Promise<PlayerStandingDetail> {
+    return this.httpClient.request<PlayerStandingDetail>(`/editions/${editionId}/standings/${playerId}`);
   }
 }
 
