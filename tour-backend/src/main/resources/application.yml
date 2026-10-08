@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: tour-backend
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    show-extensions: true
+    default-models-expand-depth: 1
+
+logging:
+  level:
+    root: INFO
+    com.rvdijkz.tour: DEBUG
+
+tour:
+  dev-player-id: ${TOUR_DEV_PLAYER_ID:1}
+  security:
+    cors:
+      allowed-origins: ${TOUR_SECURITY_CORS_ALLOWED_ORIGINS:http://localhost:5173}
+    admin-authority: ${TOUR_SECURITY_ADMIN_AUTHORITY:ROLE_ADMIN}

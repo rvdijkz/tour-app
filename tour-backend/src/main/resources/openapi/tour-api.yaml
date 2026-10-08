@@ -1,0 +1,1694 @@
+openapi: 3.0.3
+info:
+  title: Tour Backend API
+  version: 0.2.0
+  description: API-first backend contract for the tour application.
+servers:
+  - url: http://localhost:8080/api
+    description: Local backend base URL
+tags:
+  - name: Health
+  - name: Public
+  - name: Player
+  - name: Admin
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      operationId: getHealth
+      summary: Read application health
+      responses:
+        '200':
+          description: Application is running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /editions/current:
+    get:
+      tags:
+        - Public
+      operationId: getCurrentEdition
+      summary: Get active edition metadata
+      responses:
+        '200':
+          description: Active edition details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditionSummary'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/riders:
+    get:
+      tags:
+        - Public
+      operationId: listRiders
+      summary: List riders for an edition
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      responses:
+        '200':
+          description: Riders for the requested edition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiderListResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/standings:
+    get:
+      tags:
+        - Public
+      operationId: getStandings
+      summary: Get public standings for an edition
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      responses:
+        '200':
+          description: Standings for the requested edition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandingsResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/standings/{playerId}:
+    get:
+      tags:
+        - Public
+      operationId: getPlayerStandingDetail
+      summary: Get one player standing detail with stage history
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+        - $ref: '#/components/parameters/PlayerId'
+      responses:
+        '200':
+          description: Player standing detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerStandingDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/entries/current:
+    get:
+      tags:
+        - Player
+      operationId: getCurrentEntry
+      summary: Get current player's team entry for an edition
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      responses:
+        '200':
+          description: Current player entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/entries/draft:
+    put:
+      tags:
+        - Player
+      operationId: saveEntryDraft
+      summary: Save or update current player's draft entry
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveEntryDraftRequest'
+      responses:
+        '200':
+          description: Saved draft entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/entries/submit:
+    post:
+      tags:
+        - Player
+      operationId: submitEntry
+      summary: Submit current player's entry as final
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      responses:
+        '200':
+          description: Entry submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/predictions/current:
+    get:
+      tags:
+        - Player
+      operationId: getCurrentPredictions
+      summary: Get current player's saved classification predictions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      responses:
+        '200':
+          description: Current saved predictions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /editions/{editionId}/predictions:
+    put:
+      tags:
+        - Player
+      operationId: savePredictions
+      summary: Save or update classification predictions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavePredictionsRequest'
+      responses:
+        '200':
+          description: Saved predictions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/editions:
+    post:
+      tags:
+        - Admin
+      operationId: createEdition
+      summary: Create a new annual edition and clear edition-scoped game data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEditionRequest'
+      responses:
+        '201':
+          description: Edition created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEditionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/players:
+    post:
+      tags:
+        - Admin
+      operationId: createPlayer
+      summary: Create a player account with an initial temporary password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlayerRequest'
+      responses:
+        '201':
+          description: Player created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerAdminResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /admin/players/{playerId}/password-reset:
+    post:
+      tags:
+        - Admin
+      operationId: resetPlayerPassword
+      summary: Issue a new temporary password for an existing player
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PlayerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Temporary password issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/editions/{editionId}/riders/import:
+    post:
+      tags:
+        - Admin
+      operationId: importRiders
+      summary: Import riders for an edition from an Excel file
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Rider import validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiderImportResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/RiderImportLockedConflict'
+
+  /admin/editions/{editionId}/deadline:
+    patch:
+      tags:
+        - Admin
+      operationId: updateEditionDeadline
+      summary: Update entry deadline for an edition
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeadlineRequest'
+      responses:
+        '200':
+          description: Updated deadline and lock state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeadlineConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/EntryReopenLockedConflict'
+
+  /admin/editions/{editionId}/reserve-budget:
+    patch:
+      tags:
+        - Admin
+      operationId: updateReserveBudget
+      summary: Update reserve budget for the active edition
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateReserveBudgetRequest'
+      responses:
+        '200':
+          description: Updated reserve budget and lock state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReserveBudgetConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ReserveBudgetLockedConflict'
+
+  /admin/editions/{editionId}/required-nationality:
+    patch:
+      tags:
+        - Admin
+      operationId: updateRequiredNationality
+      summary: Update required nationality for position 11
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequiredNationalityRequest'
+      responses:
+        '200':
+          description: Updated required nationality and lock state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequiredNationalityConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/RequiredNationalityLockedConflict'
+
+  /admin/editions/{editionId}/double-points-stages:
+    patch:
+      tags:
+        - Admin
+      operationId: updateDoublePointsStages
+      summary: Update configured double-points stages
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDoublePointsStagesRequest'
+      responses:
+        '200':
+          description: Updated double-points stages and lock state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoublePointsStagesConfigurationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/DoublePointsLockedForbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /admin/editions/{editionId}/stages/{stageNumber}/results:
+    put:
+      tags:
+        - Admin
+      operationId: saveStageResult
+      summary: Save complete result data for a stage
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+        - $ref: '#/components/parameters/StageNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveStageResultRequest'
+      responses:
+        '200':
+          description: Stage result saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StageResultResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/StageSequenceConflict'
+    patch:
+      tags:
+        - Admin
+      operationId: correctStageResult
+      summary: Correct the latest saved stage result
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+        - $ref: '#/components/parameters/StageNumber'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveStageResultRequest'
+      responses:
+        '200':
+          description: Stage correction saved and recalculated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StageCalculationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/StageCorrectionForbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /admin/editions/{editionId}/stages/{stageNumber}/calculate:
+    post:
+      tags:
+        - Admin
+      operationId: calculateStage
+      summary: Calculate scores and publish standings for a stage
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+        - $ref: '#/components/parameters/StageNumber'
+      responses:
+        '200':
+          description: Stage calculation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StageCalculationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/StageCalculationConflict'
+
+  /admin/editions/{editionId}/final-results:
+    put:
+      tags:
+        - Admin
+      operationId: saveFinalResults
+      summary: Save final classifications and calculate final standings
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveFinalResultsRequest'
+      responses:
+        '200':
+          description: Final results saved and standings published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinalResultsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    patch:
+      tags:
+        - Admin
+      operationId: correctFinalResults
+      summary: Correct final classifications and recalculate standings
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EditionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveFinalResultsRequest'
+      responses:
+        '200':
+          description: Final results corrected and standings republished
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinalResultsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    EditionId:
+      name: editionId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    PlayerId:
+      name: playerId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    StageNumber:
+      name: stageNumber
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 21
+
+  responses:
+    BadRequest:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            badRequest:
+              $ref: '#/components/examples/BadRequestError'
+    Unauthorized:
+      description: Authentication is required or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            unauthorized:
+              $ref: '#/components/examples/UnauthorizedError'
+    Forbidden:
+      description: Authenticated but not authorized for this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            forbidden:
+              $ref: '#/components/examples/ForbiddenError'
+    NotFound:
+      description: Resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notFound:
+              $ref: '#/components/examples/NotFoundError'
+    Conflict:
+      description: Request conflicts with current game state or lock conditions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            conflict:
+              $ref: '#/components/examples/ConflictError'
+    RiderImportLockedConflict:
+      description: Rider import is blocked because at least one player has already saved a team
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            locked:
+              $ref: '#/components/examples/RiderImportLockedError'
+    EntryReopenLockedConflict:
+      description: Entry deadline cannot be reopened because stage results already exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            locked:
+              $ref: '#/components/examples/EntryReopenLockedError'
+    ReserveBudgetLockedConflict:
+      description: Reserve budget is locked after the first team save and cannot be changed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            locked:
+              $ref: '#/components/examples/ReserveBudgetLockedError'
+    RequiredNationalityLockedConflict:
+      description: Required nationality is locked after the first team save and cannot be changed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            locked:
+              $ref: '#/components/examples/RequiredNationalityLockedError'
+    DoublePointsLockedForbidden:
+      description: Double-points stage configuration is locked after the entry deadline
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            locked:
+              $ref: '#/components/examples/DoublePointsLockedError'
+    StageSequenceConflict:
+      description: Stage result cannot be saved because previous stage processing is incomplete
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            outOfSequence:
+              $ref: '#/components/examples/StageSequenceConflictError'
+    StageCorrectionForbidden:
+      description: Only the latest saved stage can be corrected
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            notLatest:
+              $ref: '#/components/examples/StageCorrectionForbiddenError'
+    StageCalculationConflict:
+      description: Stage calculation cannot run because required stage input is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            incompleteInput:
+              $ref: '#/components/examples/StageCalculationConflictError'
+
+  examples:
+    BadRequestError:
+      summary: Generic validation failure
+      value:
+        code: BAD_REQUEST
+        message: Request validation failed.
+        timestamp: '2026-10-01T21:15:00Z'
+    UnauthorizedError:
+      summary: Missing or invalid token
+      value:
+        code: UNAUTHORIZED
+        message: Authentication is required or the token is invalid.
+        timestamp: '2026-10-01T21:15:00Z'
+    ForbiddenError:
+      summary: Authenticated but not allowed
+      value:
+        code: FORBIDDEN
+        message: You are not allowed to perform this operation.
+        timestamp: '2026-10-01T21:15:00Z'
+    NotFoundError:
+      summary: Resource does not exist
+      value:
+        code: NOT_FOUND
+        message: Requested resource was not found.
+        timestamp: '2026-10-01T21:15:00Z'
+    ConflictError:
+      summary: Generic state conflict
+      value:
+        code: CONFLICT
+        message: Request conflicts with the current resource state.
+        timestamp: '2026-10-01T21:15:00Z'
+    RiderImportLockedError:
+      summary: Rider import blocked after first team save
+      value:
+        code: RIDER_IMPORT_LOCKED
+        message: Rider import is blocked because at least one player has already saved a team.
+        timestamp: '2026-10-01T21:10:00Z'
+    EntryReopenLockedError:
+      summary: Deadline reopening blocked after stage results
+      value:
+        code: ENTRY_REOPEN_LOCKED
+        message: Entry deadline cannot be reopened after stage results have been saved.
+        timestamp: '2026-10-01T21:10:00Z'
+    ReserveBudgetLockedError:
+      summary: Reserve budget change blocked
+      value:
+        code: RESERVE_BUDGET_LOCKED
+        message: Reserve budget is locked after the first team draft has been saved.
+        timestamp: '2026-10-01T21:10:00Z'
+    RequiredNationalityLockedError:
+      summary: Nationality change blocked
+      value:
+        code: REQUIRED_NATIONALITY_LOCKED
+        message: Required nationality is locked after the first team draft has been saved.
+        timestamp: '2026-10-01T21:10:00Z'
+    DoublePointsLockedError:
+      summary: Double-points stage update forbidden after deadline
+      value:
+        code: DOUBLE_POINTS_LOCKED
+        message: Double-points stage configuration is locked after the entry deadline.
+        timestamp: '2026-10-01T21:10:00Z'
+    StageSequenceConflictError:
+      summary: Stage save out-of-sequence
+      value:
+        code: STAGE_SEQUENCE_CONFLICT
+        message: Stage result cannot be saved because the previous stage is not fully processed.
+        timestamp: '2026-10-01T21:10:00Z'
+    StageCorrectionForbiddenError:
+      summary: Stage correction forbidden for non-latest stage
+      value:
+        code: STAGE_CORRECTION_FORBIDDEN
+        message: Only the latest saved stage can be corrected.
+        timestamp: '2026-10-01T21:10:00Z'
+    StageCalculationConflictError:
+      summary: Stage calculation blocked by incomplete input
+      value:
+        code: STAGE_CALCULATION_CONFLICT
+        message: Stage calculation cannot run because required stage input is missing or invalid.
+        timestamp: '2026-10-01T21:10:00Z'
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          example: UP
+        timestamp:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+        message:
+          type: string
+          example: Validation failed
+        timestamp:
+          type: string
+          format: date-time
+
+    EditionSummary:
+      type: object
+      required:
+        - editionId
+        - year
+        - entryDeadline
+        - reserveBudget
+        - requiredNationality
+        - currentStage
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        year:
+          type: integer
+          minimum: 2020
+        entryDeadline:
+          type: string
+          format: date-time
+        reserveBudget:
+          type: integer
+          minimum: 0
+        requiredNationality:
+          type: string
+          pattern: '^[A-Z0-9]{3}$'
+          description: Three-character nationality code.
+        currentStage:
+          type: integer
+          minimum: 0
+        doublePointsStages:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+
+    RiderListResponse:
+      type: object
+      required:
+        - editionId
+        - riders
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        riders:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiderSummary'
+
+    RiderSummary:
+      type: object
+      required:
+        - riderId
+        - gameRiderNumber
+        - raceBibNumber
+        - name
+        - value
+        - nationality
+      properties:
+        riderId:
+          type: integer
+          format: int64
+          minimum: 1
+        gameRiderNumber:
+          type: integer
+          minimum: 1
+        raceBibNumber:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+        value:
+          type: integer
+          minimum: 2
+          maximum: 86
+        nationality:
+          type: string
+          pattern: '^[A-Z0-9]{3}$'
+        withdrawn:
+          type: boolean
+          default: false
+
+    StandingsResponse:
+      type: object
+      required:
+        - editionId
+        - stage
+        - standings
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        stage:
+          type: integer
+          minimum: 0
+        standings:
+          type: array
+          items:
+            $ref: '#/components/schemas/StandingRow'
+
+    StandingRow:
+      type: object
+      required:
+        - rank
+        - playerId
+        - playerName
+        - teamName
+        - totalPoints
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+        playerId:
+          type: integer
+          format: int64
+          minimum: 1
+        playerName:
+          type: string
+        teamName:
+          type: string
+        totalPoints:
+          type: integer
+
+    PlayerStandingDetail:
+      type: object
+      required:
+        - editionId
+        - stage
+        - player
+        - stageHistory
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        stage:
+          type: integer
+          minimum: 0
+        player:
+          $ref: '#/components/schemas/StandingRow'
+        stageHistory:
+          type: array
+          items:
+            $ref: '#/components/schemas/StageHistoryItem'
+
+    StageHistoryItem:
+      type: object
+      required:
+        - stage
+        - stagePoints
+        - totalPoints
+        - substitutions
+        - riderScores
+      properties:
+        stage:
+          type: integer
+          minimum: 1
+        stagePoints:
+          type: integer
+        totalPoints:
+          type: integer
+        substitutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StageSubstitution'
+        riderScores:
+          type: array
+          items:
+            $ref: '#/components/schemas/RiderStageScore'
+
+    StageSubstitution:
+      type: object
+      required:
+        - effectiveStage
+        - position
+        - replacedRider
+        - substituteRider
+      properties:
+        effectiveStage:
+          type: integer
+          minimum: 1
+        position:
+          type: integer
+          minimum: 1
+          maximum: 11
+        replacedRider:
+          $ref: '#/components/schemas/StageRiderReference'
+        substituteRider:
+          $ref: '#/components/schemas/StageRiderReference'
+
+    RiderStageScore:
+      type: object
+      required:
+        - position
+        - rider
+        - substitute
+        - points
+        - scoreItems
+      properties:
+        position:
+          type: integer
+          minimum: 1
+          maximum: 14
+        rider:
+          $ref: '#/components/schemas/StageRiderReference'
+        substitute:
+          type: boolean
+        points:
+          type: integer
+        scoreItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScoreContribution'
+
+    StageRiderReference:
+      type: object
+      required:
+        - riderId
+        - riderName
+        - raceBibNumber
+      properties:
+        riderId:
+          type: integer
+          format: int64
+          minimum: 1
+        riderName:
+          type: string
+        raceBibNumber:
+          type: integer
+          minimum: 1
+
+    ScoreContribution:
+      type: object
+      required:
+        - ruleCode
+        - description
+        - points
+      properties:
+        ruleCode:
+          type: string
+        description:
+          type: string
+        points:
+          type: integer
+
+    SaveEntryDraftRequest:
+      type: object
+      required:
+        - teamName
+      properties:
+        teamName:
+          type: string
+          minLength: 1
+          maxLength: 64
+        riderIds:
+          type: array
+          minItems: 0
+          maxItems: 14
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+          description: Ordered rider selections for positions 1-14.
+        finisherCountPrediction:
+          type: integer
+          minimum: 0
+          nullable: true
+
+    EntryResponse:
+      type: object
+      required:
+        - editionId
+        - playerId
+        - status
+        - teamName
+        - riderIds
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        playerId:
+          type: integer
+          format: int64
+          minimum: 1
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        teamName:
+          type: string
+        riderIds:
+          type: array
+          minItems: 0
+          maxItems: 14
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+        finisherCountPrediction:
+          type: integer
+          minimum: 0
+          nullable: true
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    SavePredictionsRequest:
+      type: object
+      required:
+        - predictions
+      properties:
+        predictions:
+          type: array
+          minItems: 0
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/ClassificationPrediction'
+
+    PredictionsResponse:
+      type: object
+      required:
+        - editionId
+        - playerId
+        - predictions
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        playerId:
+          type: integer
+          format: int64
+          minimum: 1
+        predictions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassificationPrediction'
+
+    ClassificationPrediction:
+      type: object
+      required:
+        - classification
+        - riderIds
+      properties:
+        classification:
+          $ref: '#/components/schemas/ClassificationType'
+        riderIds:
+          type: array
+          minItems: 0
+          maxItems: 5
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+
+    EntryStatus:
+      type: string
+      enum:
+        - DRAFT
+        - SUBMITTED
+
+    ClassificationType:
+      type: string
+      enum:
+        - GENERAL
+        - POINTS
+        - MOUNTAINS
+
+    CreateEditionRequest:
+      type: object
+      required:
+        - year
+      properties:
+        year:
+          type: integer
+          minimum: 2020
+
+    CreateEditionResponse:
+      type: object
+      required:
+        - editionId
+        - year
+        - createdAt
+        - cleared
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        year:
+          type: integer
+          minimum: 2020
+        createdAt:
+          type: string
+          format: date-time
+        cleared:
+          $ref: '#/components/schemas/ClearedDataSummary'
+
+    ClearedDataSummary:
+      type: object
+      required:
+        - teams
+        - predictions
+        - stageResults
+        - standings
+      properties:
+        teams:
+          type: boolean
+        predictions:
+          type: boolean
+        stageResults:
+          type: boolean
+        standings:
+          type: boolean
+
+    CreatePlayerRequest:
+      type: object
+      required:
+        - username
+        - temporaryPassword
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 64
+        temporaryPassword:
+          type: string
+          minLength: 8
+          maxLength: 128
+
+    PlayerAdminResponse:
+      type: object
+      required:
+        - playerId
+        - username
+        - passwordExpiresAt
+      properties:
+        playerId:
+          type: integer
+          format: int64
+          minimum: 1
+        username:
+          type: string
+        passwordExpiresAt:
+          type: string
+          format: date-time
+
+    ResetPasswordRequest:
+      type: object
+      required:
+        - reason
+      properties:
+        reason:
+          $ref: '#/components/schemas/PasswordResetReason'
+
+    ResetPasswordResponse:
+      type: object
+      required:
+        - playerId
+        - temporaryPassword
+        - passwordExpiresAt
+      properties:
+        playerId:
+          type: integer
+          format: int64
+          minimum: 1
+        temporaryPassword:
+          type: string
+        passwordExpiresAt:
+          type: string
+          format: date-time
+
+    RiderImportResponse:
+      type: object
+      required:
+        - status
+        - rowsProcessed
+      properties:
+        status:
+          $ref: '#/components/schemas/ImportStatus'
+        rowsProcessed:
+          type: integer
+          minimum: 0
+        errors:
+          type: array
+          items:
+            type: string
+
+    UpdateDeadlineRequest:
+      type: object
+      required:
+        - entryDeadline
+      properties:
+        entryDeadline:
+          type: string
+          format: date-time
+
+    DeadlineConfigurationResponse:
+      type: object
+      required:
+        - editionId
+        - entryDeadline
+        - reopenAllowed
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        entryDeadline:
+          type: string
+          format: date-time
+        reopenAllowed:
+          type: boolean
+
+    UpdateReserveBudgetRequest:
+      type: object
+      required:
+        - reserveBudget
+      properties:
+        reserveBudget:
+          type: integer
+          minimum: 0
+
+    ReserveBudgetConfigurationResponse:
+      type: object
+      required:
+        - editionId
+        - reserveBudget
+        - locked
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        reserveBudget:
+          type: integer
+          minimum: 0
+        locked:
+          type: boolean
+
+    UpdateRequiredNationalityRequest:
+      type: object
+      required:
+        - requiredNationality
+      properties:
+        requiredNationality:
+          type: string
+          pattern: '^[A-Z0-9]{3}$'
+
+    RequiredNationalityConfigurationResponse:
+      type: object
+      required:
+        - editionId
+        - requiredNationality
+        - locked
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        requiredNationality:
+          type: string
+          pattern: '^[A-Z0-9]{3}$'
+        locked:
+          type: boolean
+
+    UpdateDoublePointsStagesRequest:
+      type: object
+      required:
+        - doublePointsStages
+      properties:
+        doublePointsStages:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 21
+
+    DoublePointsStagesConfigurationResponse:
+      type: object
+      required:
+        - editionId
+        - doublePointsStages
+        - locked
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        doublePointsStages:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+            maximum: 21
+        locked:
+          type: boolean
+
+    SaveStageResultRequest:
+      type: object
+      required:
+        - finishers
+        - lastFive
+        - jerseyLeaders
+      properties:
+        finishers:
+          type: array
+          minItems: 20
+          maxItems: 20
+          items:
+            $ref: '#/components/schemas/BibPlacement'
+        lastFive:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/BibPlacement'
+        jerseyLeaders:
+          $ref: '#/components/schemas/JerseyLeaders'
+        mostCombativeRaceBibNumber:
+          type: integer
+          minimum: 1
+        withdrawals:
+          type: array
+          items:
+            type: integer
+            minimum: 1
+
+    BibPlacement:
+      type: object
+      required:
+        - raceBibNumber
+        - place
+      properties:
+        raceBibNumber:
+          type: integer
+          minimum: 1
+        place:
+          type: integer
+          minimum: 1
+
+    JerseyLeaders:
+      type: object
+      required:
+        - yellow
+        - points
+        - mountains
+        - white
+      properties:
+        yellow:
+          type: integer
+          minimum: 1
+        points:
+          type: integer
+          minimum: 1
+        mountains:
+          type: integer
+          minimum: 1
+        white:
+          type: integer
+          minimum: 1
+
+    StageResultResponse:
+      type: object
+      required:
+        - editionId
+        - stageNumber
+        - savedAt
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        stageNumber:
+          type: integer
+          minimum: 1
+          maximum: 21
+        savedAt:
+          type: string
+          format: date-time
+
+    StageCalculationResponse:
+      type: object
+      required:
+        - editionId
+        - stageNumber
+        - status
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        stageNumber:
+          type: integer
+          minimum: 1
+          maximum: 21
+        status:
+          $ref: '#/components/schemas/CalculationStatus'
+        published:
+          type: boolean
+
+    SaveFinalResultsRequest:
+      type: object
+      required:
+        - generalTop5RiderIds
+        - pointsTop5RiderIds
+        - mountainsTop5RiderIds
+        - finisherCount
+      properties:
+        generalTop5RiderIds:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+        pointsTop5RiderIds:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+        mountainsTop5RiderIds:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+        finisherCount:
+          type: integer
+          minimum: 0
+
+    FinalResultsResponse:
+      type: object
+      required:
+        - editionId
+        - status
+        - published
+      properties:
+        editionId:
+          type: integer
+          format: int64
+          minimum: 1
+        status:
+          $ref: '#/components/schemas/CalculationStatus'
+        published:
+          type: boolean
+
+    PasswordResetReason:
+      type: string
+      enum:
+        - INITIAL_RESET
+        - FORGOTTEN_PASSWORD
+
+    ImportStatus:
+      type: string
+      enum:
+        - ACCEPTED
+        - REJECTED
+
+    CalculationStatus:
+      type: string
+      enum:
+        - SUCCESS
+        - FAILED
+
