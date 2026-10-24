@@ -34,6 +34,7 @@ npm run test
   - `GET /editions/{editionId}/standings`
 - The table renders rank, player, team, and points from the backend response.
 - Use standings filters (player search + team selector) to narrow visible rows without additional API calls.
+- Use standings sort to switch between **Rank** and **Points (high-low)** ordering.
 - Use **Reset standings filters** to quickly return to the full standings list.
 - Header badges indicate when standings/rider/stage filters are currently active.
 - Dashboard view and filter selections are persisted in browser local storage and restored after reload.
@@ -47,6 +48,7 @@ npm run test
   - `GET /editions/current`
   - `GET /editions/{editionId}/riders`
 - The riders dashboard supports name search, nationality filtering, and optional withdrawn-rider visibility.
+- Use rider sort to switch between **Name** and **Value (high-low)** ordering.
 - Use **Reset rider filters** to restore default rider filter settings.
 - Click **Preview scores** on a rider card to sample top standings players and aggregate rider score rows from:
   - `GET /editions/{editionId}/standings`

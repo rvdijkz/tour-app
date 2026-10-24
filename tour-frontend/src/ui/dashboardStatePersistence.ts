@@ -1,5 +1,15 @@
 import type { RiderPreviewStageFilter } from "./riderDetailPresentation";
 import type { StageHistoryFilter } from "./detailPresentation";
+import {
+  STANDINGS_SORT_POINTS_DESC,
+  STANDINGS_SORT_RANK,
+  type StandingsSort
+} from "./standingsPresentation";
+import {
+  RIDER_SORT_NAME,
+  RIDER_SORT_VALUE_DESC,
+  type RiderSort
+} from "./riderPresentation";
 
 export const DASHBOARD_STATE_STORAGE_KEY = "tour.dashboard.state.v1";
 
@@ -9,9 +19,11 @@ export interface PersistedDashboardState {
   activeView: PersistedAppView;
   standingsPlayerQuery: string;
   standingsTeamFilter: string;
+  standingsSort: StandingsSort;
   riderSearchQuery: string;
   riderNationalityFilter: string;
   includeWithdrawnRiders: boolean;
+  riderSort: RiderSort;
   detailStageFilter: StageHistoryFilter;
   riderPreviewStageFilter: RiderPreviewStageFilter;
 }
@@ -40,6 +52,14 @@ function isRiderPreviewStageFilter(value: unknown): value is RiderPreviewStageFi
   return value === "ALL" || typeof value === "number";
 }
 
+function isStandingsSort(value: unknown): value is StandingsSort {
+  return value === STANDINGS_SORT_RANK || value === STANDINGS_SORT_POINTS_DESC;
+}
+
+function isRiderSort(value: unknown): value is RiderSort {
+  return value === RIDER_SORT_NAME || value === RIDER_SORT_VALUE_DESC;
+}
+
 function sanitizePersistedState(value: unknown): PersistedDashboardState | null {
   if (!isObject(value)) {
     return null;
@@ -49,9 +69,11 @@ function sanitizePersistedState(value: unknown): PersistedDashboardState | null 
     activeView,
     standingsPlayerQuery,
     standingsTeamFilter,
+    standingsSort,
     riderSearchQuery,
     riderNationalityFilter,
     includeWithdrawnRiders,
+    riderSort,
     detailStageFilter,
     riderPreviewStageFilter
   } = value;
@@ -64,11 +86,19 @@ function sanitizePersistedState(value: unknown): PersistedDashboardState | null 
     return null;
   }
 
+  if (standingsSort !== undefined && !isStandingsSort(standingsSort)) {
+    return null;
+  }
+
   if (typeof riderSearchQuery !== "string" || typeof riderNationalityFilter !== "string") {
     return null;
   }
 
   if (typeof includeWithdrawnRiders !== "boolean") {
+    return null;
+  }
+
+  if (riderSort !== undefined && !isRiderSort(riderSort)) {
     return null;
   }
 
@@ -80,9 +110,11 @@ function sanitizePersistedState(value: unknown): PersistedDashboardState | null 
     activeView,
     standingsPlayerQuery,
     standingsTeamFilter,
+    standingsSort: standingsSort ?? STANDINGS_SORT_RANK,
     riderSearchQuery,
     riderNationalityFilter,
     includeWithdrawnRiders,
+    riderSort: riderSort ?? RIDER_SORT_NAME,
     detailStageFilter,
     riderPreviewStageFilter
   };

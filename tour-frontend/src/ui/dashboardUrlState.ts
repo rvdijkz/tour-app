@@ -1,11 +1,21 @@
 import type { PersistedDashboardState } from "./dashboardStatePersistence";
+import {
+  STANDINGS_SORT_POINTS_DESC,
+  STANDINGS_SORT_RANK
+} from "./standingsPresentation";
+import {
+  RIDER_SORT_NAME,
+  RIDER_SORT_VALUE_DESC
+} from "./riderPresentation";
 
 const PARAM_VIEW = "view";
 const PARAM_STANDINGS_PLAYER_QUERY = "spq";
 const PARAM_STANDINGS_TEAM_FILTER = "steam";
+const PARAM_STANDINGS_SORT = "ssort";
 const PARAM_RIDER_SEARCH_QUERY = "rrq";
 const PARAM_RIDER_NATIONALITY_FILTER = "rnat";
 const PARAM_INCLUDE_WITHDRAWN = "rwith";
+const PARAM_RIDER_SORT = "rsort";
 const PARAM_DETAIL_STAGE_FILTER = "dstage";
 const PARAM_RIDER_PREVIEW_STAGE_FILTER = "rpstage";
 
@@ -13,9 +23,11 @@ const DASHBOARD_QUERY_KEYS = [
   PARAM_VIEW,
   PARAM_STANDINGS_PLAYER_QUERY,
   PARAM_STANDINGS_TEAM_FILTER,
+  PARAM_STANDINGS_SORT,
   PARAM_RIDER_SEARCH_QUERY,
   PARAM_RIDER_NATIONALITY_FILTER,
   PARAM_INCLUDE_WITHDRAWN,
+  PARAM_RIDER_SORT,
   PARAM_DETAIL_STAGE_FILTER,
   PARAM_RIDER_PREVIEW_STAGE_FILTER
 ] as const;
@@ -76,6 +88,22 @@ function parseBooleanFlag(value: string | null): boolean | null {
   return null;
 }
 
+function parseStandingsSort(value: string | null): PersistedDashboardState["standingsSort"] | null {
+  if (value === STANDINGS_SORT_RANK || value === STANDINGS_SORT_POINTS_DESC) {
+    return value;
+  }
+
+  return null;
+}
+
+function parseRiderSort(value: string | null): PersistedDashboardState["riderSort"] | null {
+  if (value === RIDER_SORT_NAME || value === RIDER_SORT_VALUE_DESC) {
+    return value;
+  }
+
+  return null;
+}
+
 export function loadDashboardUrlState(
   search: string
 ): Partial<PersistedDashboardState> | null {
@@ -97,6 +125,11 @@ export function loadDashboardUrlState(
     result.standingsTeamFilter = standingsTeamFilter;
   }
 
+  const standingsSort = parseStandingsSort(params.get(PARAM_STANDINGS_SORT));
+  if (standingsSort !== null) {
+    result.standingsSort = standingsSort;
+  }
+
   const riderSearchQuery = params.get(PARAM_RIDER_SEARCH_QUERY);
   if (riderSearchQuery !== null) {
     result.riderSearchQuery = riderSearchQuery;
@@ -110,6 +143,11 @@ export function loadDashboardUrlState(
   const includeWithdrawnRiders = parseBooleanFlag(params.get(PARAM_INCLUDE_WITHDRAWN));
   if (includeWithdrawnRiders !== null) {
     result.includeWithdrawnRiders = includeWithdrawnRiders;
+  }
+
+  const riderSort = parseRiderSort(params.get(PARAM_RIDER_SORT));
+  if (riderSort !== null) {
+    result.riderSort = riderSort;
   }
 
   const detailStageFilter = parseStageFilter(params.get(PARAM_DETAIL_STAGE_FILTER));
@@ -132,9 +170,11 @@ export function buildDashboardUrlSearch(
     | "activeView"
     | "standingsPlayerQuery"
     | "standingsTeamFilter"
+    | "standingsSort"
     | "riderSearchQuery"
     | "riderNationalityFilter"
     | "includeWithdrawnRiders"
+    | "riderSort"
     | "detailStageFilter"
     | "riderPreviewStageFilter"
   >
@@ -155,6 +195,8 @@ export function buildDashboardUrlSearch(
     params.set(PARAM_STANDINGS_TEAM_FILTER, state.standingsTeamFilter);
   }
 
+  params.set(PARAM_STANDINGS_SORT, state.standingsSort);
+
   if (state.riderSearchQuery.trim() !== "") {
     params.set(PARAM_RIDER_SEARCH_QUERY, state.riderSearchQuery);
   }
@@ -164,6 +206,7 @@ export function buildDashboardUrlSearch(
   }
 
   params.set(PARAM_INCLUDE_WITHDRAWN, state.includeWithdrawnRiders ? "1" : "0");
+  params.set(PARAM_RIDER_SORT, state.riderSort);
 
   if (state.detailStageFilter !== "ALL") {
     params.set(PARAM_DETAIL_STAGE_FILTER, String(state.detailStageFilter));

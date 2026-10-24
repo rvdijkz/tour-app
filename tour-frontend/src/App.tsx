@@ -13,7 +13,15 @@ import {
   getVisibleScoreContributions,
   type StageHistoryFilter
 } from "./ui/detailPresentation";
-import { ALL_TEAMS_FILTER, filterStandings, getTeamOptions } from "./ui/standingsPresentation";
+import {
+  ALL_TEAMS_FILTER,
+  filterStandings,
+  getTeamOptions,
+  sortStandings,
+  STANDINGS_SORT_POINTS_DESC,
+  STANDINGS_SORT_RANK,
+  type StandingsSort
+} from "./ui/standingsPresentation";
 import {
   ALL_RIDER_PREVIEW_STAGES,
   buildRiderStageScorePreview,
@@ -26,7 +34,15 @@ import {
   saveDashboardState
 } from "./ui/dashboardStatePersistence";
 import { buildDashboardUrlSearch, loadDashboardUrlState } from "./ui/dashboardUrlState";
-import { filterRiders, formatRiderValue, getNationalityOptions } from "./ui/riderPresentation";
+import {
+  filterRiders,
+  formatRiderValue,
+  getNationalityOptions,
+  RIDER_SORT_NAME,
+  RIDER_SORT_VALUE_DESC,
+  sortRiders,
+  type RiderSort
+} from "./ui/riderPresentation";
 
 type AppView = "standings" | "riders";
 
@@ -50,6 +66,7 @@ export default function App() {
   const [includeWithdrawnRiders, setIncludeWithdrawnRiders] = useState<boolean>(true);
   const [standingsPlayerQuery, setStandingsPlayerQuery] = useState<string>("");
   const [standingsTeamFilter, setStandingsTeamFilter] = useState<string>(ALL_TEAMS_FILTER);
+  const [standingsSort, setStandingsSort] = useState<StandingsSort>(STANDINGS_SORT_RANK);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(false);
@@ -61,6 +78,7 @@ export default function App() {
   const [isLoadingRiderPreview, setIsLoadingRiderPreview] = useState<boolean>(false);
   const [riderPreviewErrorMessage, setRiderPreviewErrorMessage] = useState<string>("");
   const [riderPreviewStageFilter, setRiderPreviewStageFilter] = useState<RiderPreviewStageFilter>(ALL_RIDER_PREVIEW_STAGES);
+  const [riderSort, setRiderSort] = useState<RiderSort>(RIDER_SORT_NAME);
   const [isDashboardStateHydrated, setIsDashboardStateHydrated] = useState<boolean>(false);
   const [shareStateMessage, setShareStateMessage] = useState<string>("");
 
@@ -87,6 +105,8 @@ export default function App() {
     [includeWithdrawnRiders, riderNationalityFilter, riderSearchQuery, riders]
   );
 
+  const sortedRiders = useMemo(() => sortRiders(filteredRiders, riderSort), [filteredRiders, riderSort]);
+
   const filteredStandings = useMemo(
     () =>
       filterStandings(standings, {
@@ -94,6 +114,11 @@ export default function App() {
         teamName: standingsTeamFilter
       }),
     [standings, standingsPlayerQuery, standingsTeamFilter]
+  );
+
+  const sortedStandings = useMemo(
+    () => sortStandings(filteredStandings, standingsSort),
+    [filteredStandings, standingsSort]
   );
 
   const detailStageFilterOptions = useMemo(
@@ -116,9 +141,15 @@ export default function App() {
     [riderPreviewStageFilter, selectedRiderScorePreview]
   );
 
-  const hasActiveStandingsFilters = standingsPlayerQuery.trim() !== "" || standingsTeamFilter !== ALL_TEAMS_FILTER;
+  const hasActiveStandingsFilters =
+    standingsPlayerQuery.trim() !== "" ||
+    standingsTeamFilter !== ALL_TEAMS_FILTER ||
+    standingsSort !== STANDINGS_SORT_RANK;
   const hasActiveRiderFilters =
-    riderSearchQuery.trim() !== "" || riderNationalityFilter !== ALL_NATIONALITIES || !includeWithdrawnRiders;
+    riderSearchQuery.trim() !== "" ||
+    riderNationalityFilter !== ALL_NATIONALITIES ||
+    !includeWithdrawnRiders ||
+    riderSort !== RIDER_SORT_NAME;
   const hasActiveRiderPreviewStageFilter = riderPreviewStageFilter !== ALL_RIDER_PREVIEW_STAGES;
   const hasActiveDetailStageFilter = detailStageFilter !== ALL_STAGES_FILTER;
   const hasAnyActiveDashboardFilters =
@@ -130,12 +161,14 @@ export default function App() {
   const resetStandingsFilters = () => {
     setStandingsPlayerQuery("");
     setStandingsTeamFilter(ALL_TEAMS_FILTER);
+    setStandingsSort(STANDINGS_SORT_RANK);
   };
 
   const resetRiderFilters = () => {
     setRiderSearchQuery("");
     setRiderNationalityFilter(ALL_NATIONALITIES);
     setIncludeWithdrawnRiders(true);
+    setRiderSort(RIDER_SORT_NAME);
   };
 
   const resetDashboardFilters = () => {
@@ -201,6 +234,9 @@ export default function App() {
     if (mergedState.standingsTeamFilter !== undefined) {
       setStandingsTeamFilter(mergedState.standingsTeamFilter);
     }
+    if (mergedState.standingsSort !== undefined) {
+      setStandingsSort(mergedState.standingsSort);
+    }
     if (mergedState.riderSearchQuery !== undefined) {
       setRiderSearchQuery(mergedState.riderSearchQuery);
     }
@@ -209,6 +245,9 @@ export default function App() {
     }
     if (mergedState.includeWithdrawnRiders !== undefined) {
       setIncludeWithdrawnRiders(mergedState.includeWithdrawnRiders);
+    }
+    if (mergedState.riderSort !== undefined) {
+      setRiderSort(mergedState.riderSort);
     }
     if (mergedState.detailStageFilter !== undefined) {
       setDetailStageFilter(mergedState.detailStageFilter);
@@ -229,9 +268,11 @@ export default function App() {
       activeView,
       standingsPlayerQuery,
       standingsTeamFilter,
+      standingsSort,
       riderSearchQuery,
       riderNationalityFilter,
       includeWithdrawnRiders,
+      riderSort,
       detailStageFilter,
       riderPreviewStageFilter
     };
@@ -250,9 +291,11 @@ export default function App() {
     includeWithdrawnRiders,
     isDashboardStateHydrated,
     riderNationalityFilter,
+    riderSort,
     riderPreviewStageFilter,
     riderSearchQuery,
     standingsPlayerQuery,
+    standingsSort,
     standingsTeamFilter
   ]);
 
@@ -271,10 +314,12 @@ export default function App() {
         setStandings(standingsResponse.standings);
         setStandingsPlayerQuery("");
         setStandingsTeamFilter(ALL_TEAMS_FILTER);
+        setStandingsSort(STANDINGS_SORT_RANK);
       } else {
         const riderResponse = await apiClient.listRiders(edition.editionId);
         setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${edition.stage}`);
         setRiders(riderResponse.riders);
+        setRiderSort(RIDER_SORT_NAME);
       }
 
       if (view === VIEW_RIDERS) {
@@ -597,6 +642,19 @@ export default function App() {
               </select>
             </label>
 
+            <label className="rider-filter">
+              <span>Sort</span>
+              <select
+                value={standingsSort}
+                onChange={(event) => {
+                  setStandingsSort(event.target.value as StandingsSort);
+                }}
+              >
+                <option value={STANDINGS_SORT_RANK}>Rank</option>
+                <option value={STANDINGS_SORT_POINTS_DESC}>Points (high-low)</option>
+              </select>
+            </label>
+
             {hasActiveStandingsFilters && (
               <div className="filter-actions">
                 <button
@@ -623,7 +681,7 @@ export default function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredStandings.map((row) => (
+                  {sortedStandings.map((row) => (
                     <tr className={selectedPlayerDetail?.player.playerId === row.playerId ? "table-row--active" : ""} key={row.playerId}>
                       <td>{row.rank}</td>
                       <td>{row.playerName}</td>
@@ -709,6 +767,19 @@ export default function App() {
               <span>Include withdrawn riders</span>
             </label>
 
+            <label className="rider-filter">
+              <span>Sort</span>
+              <select
+                value={riderSort}
+                onChange={(event) => {
+                  setRiderSort(event.target.value as RiderSort);
+                }}
+              >
+                <option value={RIDER_SORT_NAME}>Name</option>
+                <option value={RIDER_SORT_VALUE_DESC}>Value (high-low)</option>
+              </select>
+            </label>
+
             {hasActiveRiderFilters && (
               <div className="filter-actions">
                 <button
@@ -724,7 +795,7 @@ export default function App() {
 
           {filteredRiders.length > 0 ? (
             <div className="rider-grid">
-              {filteredRiders.map((rider) => (
+              {sortedRiders.map((rider) => (
                 <article
                   className={`rider-card ${rider.withdrawn ? "rider-card--withdrawn" : ""} ${selectedRider?.riderId === rider.riderId ? "rider-card--active" : ""}`}
                   key={rider.riderId}

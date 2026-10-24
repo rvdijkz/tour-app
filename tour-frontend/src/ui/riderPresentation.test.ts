@@ -3,7 +3,10 @@ import {
   DEFAULT_RIDER_FILTERS,
   filterRiders,
   formatRiderValue,
-  getNationalityOptions
+  getNationalityOptions,
+  RIDER_SORT_NAME,
+  RIDER_SORT_VALUE_DESC,
+  sortRiders
 } from "./riderPresentation";
 
 const riders = [
@@ -58,6 +61,25 @@ describe("riderPresentation", () => {
 
   it("keeps all riders with default filters", () => {
     expect(filterRiders(riders, DEFAULT_RIDER_FILTERS)).toHaveLength(3);
+  });
+
+  it("sorts riders by name", () => {
+    const sorted = sortRiders([riders[2], riders[0], riders[1]], RIDER_SORT_NAME);
+
+    expect(sorted.map((rider) => rider.name)).toEqual(["Alex Rider", "Bernard Climber", "Chris Sprint"]);
+  });
+
+  it("sorts riders by descending value with name tie-break", () => {
+    const sorted = sortRiders(
+      [
+        riders[0],
+        riders[1],
+        { ...riders[2], name: "Aaron Sprint", value: 22 }
+      ],
+      RIDER_SORT_VALUE_DESC
+    );
+
+    expect(sorted.map((rider) => rider.name)).toEqual(["Aaron Sprint", "Alex Rider", "Bernard Climber"]);
   });
 });
 

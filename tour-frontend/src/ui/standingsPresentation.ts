@@ -1,6 +1,10 @@
 import type { StandingRow } from "../api/types";
 
 export const ALL_TEAMS_FILTER = "ALL";
+export const STANDINGS_SORT_RANK = "RANK";
+export const STANDINGS_SORT_POINTS_DESC = "POINTS_DESC";
+
+export type StandingsSort = typeof STANDINGS_SORT_RANK | typeof STANDINGS_SORT_POINTS_DESC;
 
 export interface StandingsFilters {
   playerQuery: string;
@@ -33,5 +37,21 @@ export function filterStandings(standings: StandingRow[], filters: StandingsFilt
 
     return row.playerName.toLowerCase().includes(normalizedPlayerQuery);
   });
+}
+
+export function sortStandings(standings: StandingRow[], sort: StandingsSort): StandingRow[] {
+  const sorted = [...standings];
+
+  if (sort === STANDINGS_SORT_POINTS_DESC) {
+    return sorted.sort((left, right) => {
+      if (left.totalPoints !== right.totalPoints) {
+        return right.totalPoints - left.totalPoints;
+      }
+
+      return left.rank - right.rank;
+    });
+  }
+
+  return sorted.sort((left, right) => left.rank - right.rank);
 }
 

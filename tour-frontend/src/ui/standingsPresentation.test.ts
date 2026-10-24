@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { ALL_TEAMS_FILTER, filterStandings, getTeamOptions } from "./standingsPresentation";
+import {
+  ALL_TEAMS_FILTER,
+  filterStandings,
+  getTeamOptions,
+  sortStandings,
+  STANDINGS_SORT_POINTS_DESC,
+  STANDINGS_SORT_RANK
+} from "./standingsPresentation";
 
 const standings = [
   {
@@ -48,6 +55,25 @@ describe("standingsPresentation", () => {
 
     expect(filtered).toHaveLength(1);
     expect(filtered[0].playerName).toBe("Carla Climber");
+  });
+
+  it("sorts standings by rank ascending", () => {
+    const sorted = sortStandings([standings[2], standings[0], standings[1]], STANDINGS_SORT_RANK);
+
+    expect(sorted.map((row) => row.rank)).toEqual([1, 2, 3]);
+  });
+
+  it("sorts standings by points descending with rank tie-break", () => {
+    const sorted = sortStandings(
+      [
+        { ...standings[0], totalPoints: 120, rank: 2 },
+        { ...standings[1], totalPoints: 120, rank: 1 },
+        standings[2]
+      ],
+      STANDINGS_SORT_POINTS_DESC
+    );
+
+    expect(sorted.map((row) => row.playerId)).toEqual([12, 11, 13]);
   });
 });
 

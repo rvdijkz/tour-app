@@ -20,9 +20,11 @@ describe("dashboardStatePersistence", () => {
       activeView: "riders",
       standingsPlayerQuery: "player",
       standingsTeamFilter: "Alpha",
+      standingsSort: "POINTS_DESC",
       riderSearchQuery: "rider",
       riderNationalityFilter: "NLD",
       includeWithdrawnRiders: false,
+      riderSort: "VALUE_DESC",
       detailStageFilter: 2,
       riderPreviewStageFilter: "ALL"
     };
@@ -44,6 +46,36 @@ describe("dashboardStatePersistence", () => {
     storage.setItem("tour.dashboard.state.v1", "{not valid json}");
 
     expect(loadDashboardState(storage)).toBeNull();
+  });
+
+  it("defaults missing sort fields for backward compatibility", () => {
+    const storage = new FakeStorage();
+    storage.setItem(
+      "tour.dashboard.state.v1",
+      JSON.stringify({
+        activeView: "standings",
+        standingsPlayerQuery: "",
+        standingsTeamFilter: "ALL",
+        riderSearchQuery: "",
+        riderNationalityFilter: "ALL",
+        includeWithdrawnRiders: true,
+        detailStageFilter: "ALL",
+        riderPreviewStageFilter: "ALL"
+      })
+    );
+
+    expect(loadDashboardState(storage)).toEqual({
+      activeView: "standings",
+      standingsPlayerQuery: "",
+      standingsTeamFilter: "ALL",
+      standingsSort: "RANK",
+      riderSearchQuery: "",
+      riderNationalityFilter: "ALL",
+      includeWithdrawnRiders: true,
+      riderSort: "NAME",
+      detailStageFilter: "ALL",
+      riderPreviewStageFilter: "ALL"
+    });
   });
 });
 
