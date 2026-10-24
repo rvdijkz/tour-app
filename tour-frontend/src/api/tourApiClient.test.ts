@@ -32,6 +32,19 @@ describe("TourApiClient", () => {
     expect(request).toHaveBeenCalledWith("/editions/1/standings");
   });
 
+  it("calls rider list endpoint for the given edition", async () => {
+    const request = vi.fn().mockResolvedValue({
+      editionId: 1,
+      riders: []
+    });
+
+    const client = new TourApiClient({ request } as unknown as HttpClient);
+
+    await client.listRiders(1);
+
+    expect(request).toHaveBeenCalledWith("/editions/1/riders");
+  });
+
   it("calls player standing detail endpoint for edition and player", async () => {
     const request = vi.fn().mockResolvedValue({
       editionId: 1,

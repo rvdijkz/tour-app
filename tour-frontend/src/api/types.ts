@@ -17,6 +17,27 @@ export interface EditionSummary {
 }
 
 /**
+ * Public rider summary payload returned by the backend API.
+ */
+export interface RiderSummary {
+  riderId: number;
+  gameRiderNumber: number;
+  raceBibNumber: number;
+  name: string;
+  value: number;
+  nationality: string;
+  withdrawn: boolean;
+}
+
+/**
+ * Public rider list payload returned by the backend API.
+ */
+export interface RiderListResponse {
+  editionId: number;
+  riders: RiderSummary[];
+}
+
+/**
  * Public standing row payload returned by the backend API.
  */
 export interface StandingRow {
