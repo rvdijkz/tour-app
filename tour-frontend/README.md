@@ -57,4 +57,11 @@ npm run test
 - Use rider-preview stage filter chips (**All**, **Stage N**) to focus preview rows on a selected stage.
 - In both preview/detail stage filter toolbars, **Clear stage filter** returns to **All**.
 - From the rider drawer, click **Open detail** to jump to standings and load that player's full stage history.
+- Select **Admin** and click **Load Admin Context** to resolve the current edition for admin operations.
+- Admin MVP now supports:
+  - `POST /admin/editions`
+  - `PATCH /admin/editions/{editionId}/deadline`
+  - `PATCH /admin/editions/{editionId}/reserve-budget`
+  - `PATCH /admin/editions/{editionId}/required-nationality`
+  - `PATCH /admin/editions/{editionId}/double-points-stages`
 

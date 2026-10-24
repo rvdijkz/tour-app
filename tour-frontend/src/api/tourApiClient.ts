@@ -1,4 +1,20 @@
-import type { EditionSummary, HealthResponse, PlayerStandingDetail, RiderListResponse, StandingsResponse } from "./types";
+import type {
+  CreateEditionRequest,
+  CreateEditionResponse,
+  DeadlineConfigurationResponse,
+  DoublePointsStagesConfigurationResponse,
+  EditionSummary,
+  HealthResponse,
+  PlayerStandingDetail,
+  RequiredNationalityConfigurationResponse,
+  ReserveBudgetConfigurationResponse,
+  RiderListResponse,
+  StandingsResponse,
+  UpdateDeadlineRequest,
+  UpdateDoublePointsStagesRequest,
+  UpdateRequiredNationalityRequest,
+  UpdateReserveBudgetRequest
+} from "./types";
 import type { HttpClient } from "./httpClient";
 
 /**
@@ -29,6 +45,50 @@ export class TourApiClient {
 
   getPlayerStandingDetail(editionId: number, playerId: number): Promise<PlayerStandingDetail> {
     return this.httpClient.request<PlayerStandingDetail>(`/editions/${editionId}/standings/${playerId}`);
+  }
+
+  createEdition(request: CreateEditionRequest): Promise<CreateEditionResponse> {
+    return this.httpClient.request<CreateEditionResponse>("/admin/editions", {
+      method: "POST",
+      body: request
+    });
+  }
+
+  updateEditionDeadline(editionId: number, request: UpdateDeadlineRequest): Promise<DeadlineConfigurationResponse> {
+    return this.httpClient.request<DeadlineConfigurationResponse>(`/admin/editions/${editionId}/deadline`, {
+      method: "PATCH",
+      body: request
+    });
+  }
+
+  updateReserveBudget(
+    editionId: number,
+    request: UpdateReserveBudgetRequest
+  ): Promise<ReserveBudgetConfigurationResponse> {
+    return this.httpClient.request<ReserveBudgetConfigurationResponse>(`/admin/editions/${editionId}/reserve-budget`, {
+      method: "PATCH",
+      body: request
+    });
+  }
+
+  updateRequiredNationality(
+    editionId: number,
+    request: UpdateRequiredNationalityRequest
+  ): Promise<RequiredNationalityConfigurationResponse> {
+    return this.httpClient.request<RequiredNationalityConfigurationResponse>(`/admin/editions/${editionId}/required-nationality`, {
+      method: "PATCH",
+      body: request
+    });
+  }
+
+  updateDoublePointsStages(
+    editionId: number,
+    request: UpdateDoublePointsStagesRequest
+  ): Promise<DoublePointsStagesConfigurationResponse> {
+    return this.httpClient.request<DoublePointsStagesConfigurationResponse>(`/admin/editions/${editionId}/double-points-stages`, {
+      method: "PATCH",
+      body: request
+    });
   }
 }
 

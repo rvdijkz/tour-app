@@ -46,7 +46,7 @@ function parseNumber(value: string | null): number | null {
 }
 
 function parseView(value: string | null): PersistedDashboardState["activeView"] | null {
-  if (value === "standings" || value === "riders") {
+  if (value === "standings" || value === "riders" || value === "admin") {
     return value;
   }
 

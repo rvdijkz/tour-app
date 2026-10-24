@@ -44,10 +44,11 @@ import {
   type RiderSort
 } from "./ui/riderPresentation";
 
-type AppView = "standings" | "riders";
+type AppView = "standings" | "riders" | "admin";
 
 const VIEW_STANDINGS: AppView = "standings";
 const VIEW_RIDERS: AppView = "riders";
+const VIEW_ADMIN: AppView = "admin";
 const ALL_NATIONALITIES = "ALL";
 const RIDER_PREVIEW_PLAYER_LIMIT = 8;
 
@@ -81,6 +82,14 @@ export default function App() {
   const [riderSort, setRiderSort] = useState<RiderSort>(RIDER_SORT_NAME);
   const [isDashboardStateHydrated, setIsDashboardStateHydrated] = useState<boolean>(false);
   const [shareStateMessage, setShareStateMessage] = useState<string>("");
+  const [adminEditionYear, setAdminEditionYear] = useState<string>("2027");
+  const [adminEditionIdInput, setAdminEditionIdInput] = useState<string>("");
+  const [adminEntryDeadline, setAdminEntryDeadline] = useState<string>("");
+  const [adminReserveBudget, setAdminReserveBudget] = useState<string>("20");
+  const [adminRequiredNationality, setAdminRequiredNationality] = useState<string>("NLD");
+  const [adminDoublePointsStages, setAdminDoublePointsStages] = useState<string>("5,12");
+  const [adminMessage, setAdminMessage] = useState<string>("");
+  const [isLoadingAdmin, setIsLoadingAdmin] = useState<boolean>(false);
 
   const apiClient = useMemo(() => {
     const tokenProvider = new TokenProvider(() => null);
@@ -315,17 +324,26 @@ export default function App() {
         setStandingsPlayerQuery("");
         setStandingsTeamFilter(ALL_TEAMS_FILTER);
         setStandingsSort(STANDINGS_SORT_RANK);
-      } else {
+      } else if (view === VIEW_RIDERS) {
         const riderResponse = await apiClient.listRiders(edition.editionId);
         setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${edition.stage}`);
         setRiders(riderResponse.riders);
         setRiderSort(RIDER_SORT_NAME);
+      } else {
+        setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${edition.stage}`);
+        setAdminEditionIdInput(String(edition.editionId));
       }
 
       if (view === VIEW_RIDERS) {
         setSelectedPlayerDetail(null);
         setDetailStageFilter(ALL_STAGES_FILTER);
+      } else if (view === VIEW_STANDINGS) {
+        setSelectedRider(null);
+        setSelectedRiderScorePreview([]);
+        setRiderPreviewErrorMessage("");
+        setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
       } else {
+        setSelectedPlayerDetail(null);
         setSelectedRider(null);
         setSelectedRiderScorePreview([]);
         setRiderPreviewErrorMessage("");
@@ -474,6 +492,154 @@ export default function App() {
     await loadRiderScorePreview(selectedDetailRider, "open");
   };
 
+  const parseAdminEditionId = (): number | null => {
+    const parsed = Number(adminEditionIdInput);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      setAdminMessage("Enter a valid edition id.");
+      return null;
+    }
+
+    return parsed;
+  };
+
+  const createEdition = async () => {
+    const parsedYear = Number(adminEditionYear);
+    if (!Number.isInteger(parsedYear) || parsedYear < 2020) {
+      setAdminMessage("Edition year must be an integer from 2020 onward.");
+      return;
+    }
+
+    setIsLoadingAdmin(true);
+    setAdminMessage("");
+    try {
+      const response = await apiClient.createEdition({ year: parsedYear });
+      setAdminEditionIdInput(String(response.editionId));
+      setAdminMessage(`Edition ${response.editionId} created for year ${response.year}.`);
+    } catch (error) {
+      const nextError = error instanceof Error ? error.message : "Unknown error";
+      setAdminMessage(`Create edition failed: ${nextError}`);
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
+  const saveEditionDeadline = async () => {
+    const editionId = parseAdminEditionId();
+    if (editionId === null) {
+      return;
+    }
+
+    if (adminEntryDeadline.trim() === "") {
+      setAdminMessage("Entry deadline is required.");
+      return;
+    }
+
+    const asDate = new Date(adminEntryDeadline);
+    if (Number.isNaN(asDate.getTime())) {
+      setAdminMessage("Entry deadline must be a valid date and time.");
+      return;
+    }
+
+    setIsLoadingAdmin(true);
+    setAdminMessage("");
+    try {
+      const response = await apiClient.updateEditionDeadline(editionId, { entryDeadline: asDate.toISOString() });
+      setAdminMessage(`Deadline updated for edition ${response.editionId}.`);
+    } catch (error) {
+      const nextError = error instanceof Error ? error.message : "Unknown error";
+      setAdminMessage(`Update deadline failed: ${nextError}`);
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
+  const saveReserveBudget = async () => {
+    const editionId = parseAdminEditionId();
+    if (editionId === null) {
+      return;
+    }
+
+    const parsedBudget = Number(adminReserveBudget);
+    if (!Number.isInteger(parsedBudget) || parsedBudget < 0) {
+      setAdminMessage("Reserve budget must be a non-negative integer.");
+      return;
+    }
+
+    setIsLoadingAdmin(true);
+    setAdminMessage("");
+    try {
+      const response = await apiClient.updateReserveBudget(editionId, { reserveBudget: parsedBudget });
+      setAdminMessage(`Reserve budget set to ${response.reserveBudget} for edition ${response.editionId}.`);
+    } catch (error) {
+      const nextError = error instanceof Error ? error.message : "Unknown error";
+      setAdminMessage(`Update reserve budget failed: ${nextError}`);
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
+  const saveRequiredNationality = async () => {
+    const editionId = parseAdminEditionId();
+    if (editionId === null) {
+      return;
+    }
+
+    const normalizedNationality = adminRequiredNationality.trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(normalizedNationality)) {
+      setAdminMessage("Required nationality must be a 3-letter code.");
+      return;
+    }
+
+    setIsLoadingAdmin(true);
+    setAdminMessage("");
+    try {
+      const response = await apiClient.updateRequiredNationality(editionId, { requiredNationality: normalizedNationality });
+      setAdminRequiredNationality(response.requiredNationality);
+      setAdminMessage(`Required nationality set to ${response.requiredNationality} for edition ${response.editionId}.`);
+    } catch (error) {
+      const nextError = error instanceof Error ? error.message : "Unknown error";
+      setAdminMessage(`Update required nationality failed: ${nextError}`);
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
+  const saveDoublePointsStages = async () => {
+    const editionId = parseAdminEditionId();
+    if (editionId === null) {
+      return;
+    }
+
+    const parsedStages = Array.from(
+      new Set(
+        adminDoublePointsStages
+          .split(",")
+          .map((value) => Number(value.trim()))
+          .filter((value) => Number.isInteger(value))
+      )
+    );
+
+    if (parsedStages.length === 0 || parsedStages.some((stage) => stage < 1 || stage > 21)) {
+      setAdminMessage("Double points stages must contain one or more integers between 1 and 21.");
+      return;
+    }
+
+    const normalizedStages = parsedStages.sort((left, right) => left - right);
+
+    setIsLoadingAdmin(true);
+    setAdminMessage("");
+    try {
+      const response = await apiClient.updateDoublePointsStages(editionId, { doublePointsStages: normalizedStages });
+      setAdminDoublePointsStages(response.doublePointsStages.join(","));
+      setAdminMessage(`Double points stages updated for edition ${response.editionId}.`);
+    } catch (error) {
+      const nextError = error instanceof Error ? error.message : "Unknown error";
+      setAdminMessage(`Update double points stages failed: ${nextError}`);
+    } finally {
+      setIsLoadingAdmin(false);
+    }
+  };
+
   return (
     <main className="app-shell">
       <section className="hero">
@@ -511,6 +677,18 @@ export default function App() {
             >
               Riders
             </button>
+            <button
+              type="button"
+              className={`view-toggle__button ${activeView === VIEW_ADMIN ? "view-toggle__button--active" : ""}`}
+              onClick={() => {
+                void loadCurrentEditionData(VIEW_ADMIN);
+              }}
+              disabled={isLoading}
+              role="tab"
+              aria-selected={activeView === VIEW_ADMIN}
+            >
+              Admin
+            </button>
           </div>
 
           <div className="toolbar">
@@ -528,9 +706,13 @@ export default function App() {
                   ? standings.length > 0
                     ? "Refresh Standings"
                     : "Load Current Standings"
-                  : riders.length > 0
-                    ? "Refresh Riders"
-                    : "Load Riders"}
+                  : activeView === VIEW_RIDERS
+                    ? riders.length > 0
+                      ? "Refresh Riders"
+                      : "Load Riders"
+                    : activeEditionId !== null
+                      ? "Refresh Admin Context"
+                      : "Load Admin Context"}
             </button>
             {selectedPlayerDetail !== null && (
               <button
@@ -594,6 +776,12 @@ export default function App() {
       {activeView === VIEW_RIDERS && riders.length === 0 && errorMessage === "" && !isLoading && (
         <p className="message message--info">
           Click <strong>Load Riders</strong> to fetch the current edition rider catalog.
+        </p>
+      )}
+
+      {activeView === VIEW_ADMIN && activeEditionId === null && errorMessage === "" && !isLoading && (
+        <p className="message message--info">
+          Click <strong>Load Admin Context</strong> to resolve the current edition before applying admin updates.
         </p>
       )}
 
@@ -952,6 +1140,176 @@ export default function App() {
               )}
             </section>
           )}
+        </section>
+      )}
+
+      {activeView === VIEW_ADMIN && (
+        <section className="panel">
+          <div className="panel__header">
+            <div>
+              <h2 className="panel__title">Admin Edition Configuration</h2>
+              <p className="panel__subtitle">Create editions and update core configuration fields through admin endpoints.</p>
+            </div>
+            <span className="score-chip">MVP</span>
+          </div>
+
+          {adminMessage !== "" && <p className="message message--info">{adminMessage}</p>}
+
+          <div className="admin-grid">
+            <section className="list-card admin-card">
+              <h3>Create edition</h3>
+              <div className="admin-form-grid">
+                <label className="rider-filter">
+                  <span>Edition year</span>
+                  <input
+                    type="number"
+                    min={2020}
+                    step={1}
+                    value={adminEditionYear}
+                    onChange={(event) => {
+                      setAdminEditionYear(event.target.value);
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="small-button"
+                  disabled={isLoadingAdmin}
+                  onClick={() => {
+                    void createEdition();
+                  }}
+                >
+                  {isLoadingAdmin ? "Saving..." : "Create edition"}
+                </button>
+              </div>
+            </section>
+
+            <section className="list-card admin-card">
+              <h3>Target edition</h3>
+              <div className="admin-form-grid">
+                <label className="rider-filter">
+                  <span>Edition id</span>
+                  <input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={adminEditionIdInput}
+                    onChange={(event) => {
+                      setAdminEditionIdInput(event.target.value);
+                    }}
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className="list-card admin-card">
+              <h3>Entry deadline</h3>
+              <div className="admin-form-grid">
+                <label className="rider-filter">
+                  <span>Deadline (local)</span>
+                  <input
+                    type="datetime-local"
+                    value={adminEntryDeadline}
+                    onChange={(event) => {
+                      setAdminEntryDeadline(event.target.value);
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="small-button"
+                  disabled={isLoadingAdmin}
+                  onClick={() => {
+                    void saveEditionDeadline();
+                  }}
+                >
+                  {isLoadingAdmin ? "Saving..." : "Save deadline"}
+                </button>
+              </div>
+            </section>
+
+            <section className="list-card admin-card">
+              <h3>Reserve budget</h3>
+              <div className="admin-form-grid">
+                <label className="rider-filter">
+                  <span>Reserve budget</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={adminReserveBudget}
+                    onChange={(event) => {
+                      setAdminReserveBudget(event.target.value);
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="small-button"
+                  disabled={isLoadingAdmin}
+                  onClick={() => {
+                    void saveReserveBudget();
+                  }}
+                >
+                  {isLoadingAdmin ? "Saving..." : "Save reserve budget"}
+                </button>
+              </div>
+            </section>
+
+            <section className="list-card admin-card">
+              <h3>Required nationality</h3>
+              <div className="admin-form-grid">
+                <label className="rider-filter">
+                  <span>3-letter code</span>
+                  <input
+                    type="text"
+                    maxLength={3}
+                    value={adminRequiredNationality}
+                    onChange={(event) => {
+                      setAdminRequiredNationality(event.target.value.toUpperCase());
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="small-button"
+                  disabled={isLoadingAdmin}
+                  onClick={() => {
+                    void saveRequiredNationality();
+                  }}
+                >
+                  {isLoadingAdmin ? "Saving..." : "Save required nationality"}
+                </button>
+              </div>
+            </section>
+
+            <section className="list-card admin-card">
+              <h3>Double points stages</h3>
+              <div className="admin-form-grid">
+                <label className="rider-filter">
+                  <span>Comma-separated stages</span>
+                  <input
+                    type="text"
+                    value={adminDoublePointsStages}
+                    onChange={(event) => {
+                      setAdminDoublePointsStages(event.target.value);
+                    }}
+                    placeholder="5,12"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="small-button"
+                  disabled={isLoadingAdmin}
+                  onClick={() => {
+                    void saveDoublePointsStages();
+                  }}
+                >
+                  {isLoadingAdmin ? "Saving..." : "Save double points stages"}
+                </button>
+              </div>
+            </section>
+          </div>
         </section>
       )}
 

@@ -99,3 +99,61 @@ export interface PlayerStandingDetail {
   stageHistory: StageHistoryItem[];
 }
 
+export interface ClearedDataSummary {
+  teams: boolean;
+  predictions: boolean;
+  stageResults: boolean;
+  standings: boolean;
+}
+
+export interface CreateEditionRequest {
+  year: number;
+}
+
+export interface CreateEditionResponse {
+  editionId: number;
+  year: number;
+  createdAt: string;
+  cleared: ClearedDataSummary;
+}
+
+export interface UpdateDeadlineRequest {
+  entryDeadline: string;
+}
+
+export interface DeadlineConfigurationResponse {
+  editionId: number;
+  entryDeadline: string;
+  reopenAllowed: boolean;
+}
+
+export interface UpdateReserveBudgetRequest {
+  reserveBudget: number;
+}
+
+export interface ReserveBudgetConfigurationResponse {
+  editionId: number;
+  reserveBudget: number;
+  locked: boolean;
+}
+
+export interface UpdateRequiredNationalityRequest {
+  requiredNationality: string;
+}
+
+export interface RequiredNationalityConfigurationResponse {
+  editionId: number;
+  requiredNationality: string;
+  locked: boolean;
+}
+
+export interface UpdateDoublePointsStagesRequest {
+  doublePointsStages: number[];
+}
+
+export interface DoublePointsStagesConfigurationResponse {
+  editionId: number;
+  doublePointsStages: number[];
+  locked: boolean;
+}
+

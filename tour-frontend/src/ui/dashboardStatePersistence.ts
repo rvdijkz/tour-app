@@ -13,7 +13,7 @@ import {
 
 export const DASHBOARD_STATE_STORAGE_KEY = "tour.dashboard.state.v1";
 
-export type PersistedAppView = "standings" | "riders";
+export type PersistedAppView = "standings" | "riders" | "admin";
 
 export interface PersistedDashboardState {
   activeView: PersistedAppView;
@@ -41,7 +41,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isPersistedAppView(value: unknown): value is PersistedAppView {
-  return value === "standings" || value === "riders";
+  return value === "standings" || value === "riders" || value === "admin";
 }
 
 function isStageFilter(value: unknown): value is StageHistoryFilter {
