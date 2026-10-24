@@ -142,6 +142,12 @@ p {
   align-items: center;
 }
 
+.toolbar__hint {
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 input,
 select {
   width: 100%;
@@ -254,6 +260,23 @@ select:focus {
 .panel__subtitle {
   color: #64748b;
   margin-bottom: 0;
+}
+
+.panel__chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.active-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.78rem;
 }
 
 .table-scroll {
@@ -413,6 +436,11 @@ tbody tr:hover {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 0.75rem;
   margin-bottom: 1rem;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
 }
 
 .rider-filter {

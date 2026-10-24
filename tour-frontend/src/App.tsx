@@ -62,6 +62,7 @@ export default function App() {
   const [riderPreviewErrorMessage, setRiderPreviewErrorMessage] = useState<string>("");
   const [riderPreviewStageFilter, setRiderPreviewStageFilter] = useState<RiderPreviewStageFilter>(ALL_RIDER_PREVIEW_STAGES);
   const [isDashboardStateHydrated, setIsDashboardStateHydrated] = useState<boolean>(false);
+  const [shareStateMessage, setShareStateMessage] = useState<string>("");
 
   const apiClient = useMemo(() => {
     const tokenProvider = new TokenProvider(() => null);
@@ -114,6 +115,70 @@ export default function App() {
     () => filterRiderPreviewByStage(selectedRiderScorePreview, riderPreviewStageFilter),
     [riderPreviewStageFilter, selectedRiderScorePreview]
   );
+
+  const hasActiveStandingsFilters = standingsPlayerQuery.trim() !== "" || standingsTeamFilter !== ALL_TEAMS_FILTER;
+  const hasActiveRiderFilters =
+    riderSearchQuery.trim() !== "" || riderNationalityFilter !== ALL_NATIONALITIES || !includeWithdrawnRiders;
+  const hasActiveRiderPreviewStageFilter = riderPreviewStageFilter !== ALL_RIDER_PREVIEW_STAGES;
+  const hasActiveDetailStageFilter = detailStageFilter !== ALL_STAGES_FILTER;
+  const hasAnyActiveDashboardFilters =
+    hasActiveStandingsFilters ||
+    hasActiveRiderFilters ||
+    hasActiveRiderPreviewStageFilter ||
+    hasActiveDetailStageFilter;
+
+  const resetStandingsFilters = () => {
+    setStandingsPlayerQuery("");
+    setStandingsTeamFilter(ALL_TEAMS_FILTER);
+  };
+
+  const resetRiderFilters = () => {
+    setRiderSearchQuery("");
+    setRiderNationalityFilter(ALL_NATIONALITIES);
+    setIncludeWithdrawnRiders(true);
+  };
+
+  const resetDashboardFilters = () => {
+    resetStandingsFilters();
+    resetRiderFilters();
+    setDetailStageFilter(ALL_STAGES_FILTER);
+    setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
+  };
+
+  const copyShareLink = async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const urlToCopy = window.location.href;
+
+    try {
+      await navigator.clipboard.writeText(urlToCopy);
+      setShareStateMessage("Share link copied.");
+    } catch {
+      try {
+        const fallbackInput = document.createElement("textarea");
+        fallbackInput.value = urlToCopy;
+        fallbackInput.setAttribute("readonly", "");
+        fallbackInput.style.position = "fixed";
+        fallbackInput.style.opacity = "0";
+        fallbackInput.style.pointerEvents = "none";
+        document.body.appendChild(fallbackInput);
+        fallbackInput.focus();
+        fallbackInput.select();
+
+        const copied = document.execCommand("copy");
+        setShareStateMessage(copied ? "Share link copied." : "Failed to copy share link.");
+        document.body.removeChild(fallbackInput);
+      } catch {
+        setShareStateMessage("Failed to copy share link.");
+      }
+    }
+
+    window.setTimeout(() => {
+      setShareStateMessage("");
+    }, 2500);
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -433,6 +498,25 @@ export default function App() {
                 Clear detail
               </button>
             )}
+            <button
+              type="button"
+              className="toolbar__button toolbar__button--secondary"
+              onClick={() => {
+                void copyShareLink();
+              }}
+            >
+              Copy share link
+            </button>
+            {hasAnyActiveDashboardFilters && (
+              <button
+                type="button"
+                className="toolbar__button toolbar__button--secondary"
+                onClick={resetDashboardFilters}
+              >
+                Reset dashboard filters
+              </button>
+            )}
+            {shareStateMessage !== "" && <span className="toolbar__hint">{shareStateMessage}</span>}
           </div>
         </div>
 
@@ -475,9 +559,12 @@ export default function App() {
               <h2 className="panel__title">Standings</h2>
               <p className="panel__subtitle">Rank, player, team, and total points from the live API response.</p>
             </div>
-            <span className="score-chip">
-              {filteredStandings.length} / {standings.length} players
-            </span>
+            <div className="panel__chips">
+              {hasActiveStandingsFilters && <span className="active-chip">Filters active</span>}
+              <span className="score-chip">
+                {filteredStandings.length} / {standings.length} players
+              </span>
+            </div>
           </div>
 
           <div className="standings-filters" aria-label="Standings filters">
@@ -509,6 +596,18 @@ export default function App() {
                 ))}
               </select>
             </label>
+
+            {hasActiveStandingsFilters && (
+              <div className="filter-actions">
+                <button
+                  type="button"
+                  className="small-button"
+                  onClick={resetStandingsFilters}
+                >
+                  Reset standings filters
+                </button>
+              </div>
+            )}
           </div>
 
           {filteredStandings.length > 0 ? (
@@ -561,9 +660,12 @@ export default function App() {
               <h2 className="panel__title">Riders</h2>
               <p className="panel__subtitle">Browse the edition rider catalog with search and nationality filters.</p>
             </div>
-            <span className="score-chip">
-              {filteredRiders.length} / {riders.length} riders
-            </span>
+            <div className="panel__chips">
+              {hasActiveRiderFilters && <span className="active-chip">Filters active</span>}
+              <span className="score-chip">
+                {filteredRiders.length} / {riders.length} riders
+              </span>
+            </div>
           </div>
 
           <div className="rider-filters" aria-label="Rider filters">
@@ -606,6 +708,18 @@ export default function App() {
               />
               <span>Include withdrawn riders</span>
             </label>
+
+            {hasActiveRiderFilters && (
+              <div className="filter-actions">
+                <button
+                  type="button"
+                  className="small-button"
+                  onClick={resetRiderFilters}
+                >
+                  Reset rider filters
+                </button>
+              </div>
+            )}
           </div>
 
           {filteredRiders.length > 0 ? (
@@ -658,6 +772,7 @@ export default function App() {
                   <h3 className="panel__title">Preview scores: {selectedRider.name}</h3>
                   <p className="panel__subtitle">Sampled from the top {RIDER_PREVIEW_PLAYER_LIMIT} standings players.</p>
                 </div>
+                {hasActiveRiderPreviewStageFilter && <span className="active-chip">Stage filter active</span>}
               </div>
 
               {riderPreviewStageOptions.length > 0 && (
@@ -687,6 +802,17 @@ export default function App() {
                         Stage {stage}
                       </button>
                     ))}
+                    {hasActiveRiderPreviewStageFilter && (
+                      <button
+                        type="button"
+                        className="small-button"
+                        onClick={() => {
+                          setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
+                        }}
+                      >
+                        Clear stage filter
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -767,7 +893,10 @@ export default function App() {
                 Team {selectedPlayerDetail.player.teamName} • Total points {selectedPlayerDetail.player.totalPoints}
               </p>
             </div>
-            <span className="score-chip">Stage history</span>
+            <div className="panel__chips">
+              {hasActiveDetailStageFilter && <span className="active-chip">Stage filter active</span>}
+              <span className="score-chip">Stage history</span>
+            </div>
           </div>
 
           {detailStageFilterOptions.length > 0 && (
@@ -797,6 +926,17 @@ export default function App() {
                     Stage {stage}
                   </button>
                 ))}
+                {hasActiveDetailStageFilter && (
+                  <button
+                    type="button"
+                    className="small-button"
+                    onClick={() => {
+                      setDetailStageFilter(ALL_STAGES_FILTER);
+                    }}
+                  >
+                    Clear stage filter
+                  </button>
+                )}
               </div>
             </div>
           )}
