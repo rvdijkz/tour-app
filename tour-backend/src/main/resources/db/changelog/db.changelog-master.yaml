@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/002-player-admin-schema.yaml
   - include:
       file: db/changelog/003-align-generated-id-counters.yaml
+  - include:
+      file: db/changelog/004-seed-frontend-demo-data.yaml
