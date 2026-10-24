@@ -14,6 +14,9 @@ export interface RiderStageScorePreview {
   contributions: string[];
 }
 
+export const ALL_RIDER_PREVIEW_STAGES = "ALL";
+export type RiderPreviewStageFilter = typeof ALL_RIDER_PREVIEW_STAGES | number;
+
 export function buildRiderStageScorePreview(
   playerDetails: PlayerStandingDetail[],
   riderId: number,
@@ -49,5 +52,25 @@ export function buildRiderStageScorePreview(
 
     return left.playerName.localeCompare(right.playerName);
   });
+}
+
+export function getRiderPreviewStageOptions(previewRows: RiderStageScorePreview[]): number[] {
+  const uniqueStages = new Set<number>();
+  previewRows.forEach((row) => {
+    uniqueStages.add(row.stage);
+  });
+
+  return Array.from(uniqueStages).sort((left, right) => right - left);
+}
+
+export function filterRiderPreviewByStage(
+  previewRows: RiderStageScorePreview[],
+  stageFilter: RiderPreviewStageFilter
+): RiderStageScorePreview[] {
+  if (stageFilter === ALL_RIDER_PREVIEW_STAGES) {
+    return previewRows;
+  }
+
+  return previewRows.filter((row) => row.stage === stageFilter);
 }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { environment } from "./config/env";
 import { FetchHttpClient } from "./api/httpClient";
 import { TokenProvider } from "./api/tokenProvider";
@@ -13,7 +13,19 @@ import {
   getVisibleScoreContributions,
   type StageHistoryFilter
 } from "./ui/detailPresentation";
-import { buildRiderStageScorePreview } from "./ui/riderDetailPresentation";
+import { ALL_TEAMS_FILTER, filterStandings, getTeamOptions } from "./ui/standingsPresentation";
+import {
+  ALL_RIDER_PREVIEW_STAGES,
+  buildRiderStageScorePreview,
+  filterRiderPreviewByStage,
+  getRiderPreviewStageOptions,
+  type RiderPreviewStageFilter
+} from "./ui/riderDetailPresentation";
+import {
+  loadDashboardState,
+  saveDashboardState
+} from "./ui/dashboardStatePersistence";
+import { buildDashboardUrlSearch, loadDashboardUrlState } from "./ui/dashboardUrlState";
 import { filterRiders, formatRiderValue, getNationalityOptions } from "./ui/riderPresentation";
 
 type AppView = "standings" | "riders";
@@ -36,6 +48,8 @@ export default function App() {
   const [riderSearchQuery, setRiderSearchQuery] = useState<string>("");
   const [riderNationalityFilter, setRiderNationalityFilter] = useState<string>(ALL_NATIONALITIES);
   const [includeWithdrawnRiders, setIncludeWithdrawnRiders] = useState<boolean>(true);
+  const [standingsPlayerQuery, setStandingsPlayerQuery] = useState<string>("");
+  const [standingsTeamFilter, setStandingsTeamFilter] = useState<string>(ALL_TEAMS_FILTER);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(false);
@@ -46,6 +60,8 @@ export default function App() {
   );
   const [isLoadingRiderPreview, setIsLoadingRiderPreview] = useState<boolean>(false);
   const [riderPreviewErrorMessage, setRiderPreviewErrorMessage] = useState<string>("");
+  const [riderPreviewStageFilter, setRiderPreviewStageFilter] = useState<RiderPreviewStageFilter>(ALL_RIDER_PREVIEW_STAGES);
+  const [isDashboardStateHydrated, setIsDashboardStateHydrated] = useState<boolean>(false);
 
   const apiClient = useMemo(() => {
     const tokenProvider = new TokenProvider(() => null);
@@ -58,6 +74,7 @@ export default function App() {
   }, []);
 
   const nationalityOptions = useMemo(() => getNationalityOptions(riders), [riders]);
+  const standingsTeamOptions = useMemo(() => getTeamOptions(standings), [standings]);
 
   const filteredRiders = useMemo(
     () =>
@@ -69,6 +86,15 @@ export default function App() {
     [includeWithdrawnRiders, riderNationalityFilter, riderSearchQuery, riders]
   );
 
+  const filteredStandings = useMemo(
+    () =>
+      filterStandings(standings, {
+        playerQuery: standingsPlayerQuery,
+        teamName: standingsTeamFilter
+      }),
+    [standings, standingsPlayerQuery, standingsTeamFilter]
+  );
+
   const detailStageFilterOptions = useMemo(
     () => getStageHistoryFilterOptions(selectedPlayerDetail?.stageHistory ?? []),
     [selectedPlayerDetail]
@@ -78,6 +104,92 @@ export default function App() {
     () => filterStageHistory(selectedPlayerDetail?.stageHistory ?? [], detailStageFilter),
     [detailStageFilter, selectedPlayerDetail]
   );
+
+  const riderPreviewStageOptions = useMemo(
+    () => getRiderPreviewStageOptions(selectedRiderScorePreview),
+    [selectedRiderScorePreview]
+  );
+
+  const filteredRiderPreviewRows = useMemo(
+    () => filterRiderPreviewByStage(selectedRiderScorePreview, riderPreviewStageFilter),
+    [riderPreviewStageFilter, selectedRiderScorePreview]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const savedState = loadDashboardState(window.localStorage) ?? undefined;
+    const urlState = loadDashboardUrlState(window.location.search) ?? undefined;
+    const mergedState = {
+      ...savedState,
+      ...urlState
+    };
+
+    if (mergedState.activeView !== undefined) {
+      setActiveView(mergedState.activeView);
+    }
+    if (mergedState.standingsPlayerQuery !== undefined) {
+      setStandingsPlayerQuery(mergedState.standingsPlayerQuery);
+    }
+    if (mergedState.standingsTeamFilter !== undefined) {
+      setStandingsTeamFilter(mergedState.standingsTeamFilter);
+    }
+    if (mergedState.riderSearchQuery !== undefined) {
+      setRiderSearchQuery(mergedState.riderSearchQuery);
+    }
+    if (mergedState.riderNationalityFilter !== undefined) {
+      setRiderNationalityFilter(mergedState.riderNationalityFilter);
+    }
+    if (mergedState.includeWithdrawnRiders !== undefined) {
+      setIncludeWithdrawnRiders(mergedState.includeWithdrawnRiders);
+    }
+    if (mergedState.detailStageFilter !== undefined) {
+      setDetailStageFilter(mergedState.detailStageFilter);
+    }
+    if (mergedState.riderPreviewStageFilter !== undefined) {
+      setRiderPreviewStageFilter(mergedState.riderPreviewStageFilter);
+    }
+
+    setIsDashboardStateHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDashboardStateHydrated || typeof window === "undefined") {
+      return;
+    }
+
+    const dashboardState = {
+      activeView,
+      standingsPlayerQuery,
+      standingsTeamFilter,
+      riderSearchQuery,
+      riderNationalityFilter,
+      includeWithdrawnRiders,
+      detailStageFilter,
+      riderPreviewStageFilter
+    };
+
+    saveDashboardState(window.localStorage, dashboardState);
+
+    const nextSearch = buildDashboardUrlSearch(window.location.search, dashboardState);
+    const nextUrl = `${window.location.pathname}${nextSearch}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) {
+      window.history.replaceState(null, "", nextUrl);
+    }
+  }, [
+    activeView,
+    detailStageFilter,
+    includeWithdrawnRiders,
+    isDashboardStateHydrated,
+    riderNationalityFilter,
+    riderPreviewStageFilter,
+    riderSearchQuery,
+    standingsPlayerQuery,
+    standingsTeamFilter
+  ]);
 
   const loadCurrentEditionData = async (view: AppView) => {
     setIsLoading(true);
@@ -92,6 +204,8 @@ export default function App() {
         const standingsResponse = await apiClient.getStandings(edition.editionId);
         setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${standingsResponse.stage}`);
         setStandings(standingsResponse.standings);
+        setStandingsPlayerQuery("");
+        setStandingsTeamFilter(ALL_TEAMS_FILTER);
       } else {
         const riderResponse = await apiClient.listRiders(edition.editionId);
         setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${edition.stage}`);
@@ -105,6 +219,7 @@ export default function App() {
         setSelectedRider(null);
         setSelectedRiderScorePreview([]);
         setRiderPreviewErrorMessage("");
+        setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
       }
     } catch (error) {
       const nextErrorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -117,6 +232,7 @@ export default function App() {
       setSelectedRider(null);
       setSelectedRiderScorePreview([]);
       setRiderPreviewErrorMessage("");
+      setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
       setErrorMessage(`Failed to load ${view}: ${nextErrorMessage}`);
     } finally {
       setIsLoading(false);
@@ -153,11 +269,13 @@ export default function App() {
       setSelectedRider(null);
       setSelectedRiderScorePreview([]);
       setRiderPreviewErrorMessage("");
+      setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
       return;
     }
 
     setIsLoadingRiderPreview(true);
     setRiderPreviewErrorMessage("");
+    setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
     setSelectedRider(rider);
 
     try {
@@ -357,45 +475,82 @@ export default function App() {
               <h2 className="panel__title">Standings</h2>
               <p className="panel__subtitle">Rank, player, team, and total points from the live API response.</p>
             </div>
-            <span className="score-chip">{standings.length} players</span>
+            <span className="score-chip">
+              {filteredStandings.length} / {standings.length} players
+            </span>
           </div>
 
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Player</th>
-                  <th>Team</th>
-                  <th>Points</th>
-                  <th>Detail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {standings.map((row) => (
-                  <tr className={selectedPlayerDetail?.player.playerId === row.playerId ? "table-row--active" : ""} key={row.playerId}>
-                    <td>{row.rank}</td>
-                    <td>{row.playerName}</td>
-                    <td>{row.teamName}</td>
-                    <td>{row.totalPoints}</td>
-                    <td className="button-cell">
-                      <button
-                        type="button"
-                        className={`small-button ${selectedPlayerDetail?.player.playerId === row.playerId ? "small-button--active" : ""}`}
-                        onClick={() => {
-                          void loadPlayerStandingDetail(row);
-                        }}
-                        disabled={isLoadingDetail}
-                        aria-pressed={selectedPlayerDetail?.player.playerId === row.playerId}
-                      >
-                        {isLoadingDetail && selectedPlayerDetail?.player.playerId === row.playerId ? "Loading..." : "View"}
-                      </button>
-                    </td>
-                  </tr>
+          <div className="standings-filters" aria-label="Standings filters">
+            <label className="rider-filter">
+              <span>Player</span>
+              <input
+                type="search"
+                value={standingsPlayerQuery}
+                onChange={(event) => {
+                  setStandingsPlayerQuery(event.target.value);
+                }}
+                placeholder="Search player"
+              />
+            </label>
+
+            <label className="rider-filter">
+              <span>Team</span>
+              <select
+                value={standingsTeamFilter}
+                onChange={(event) => {
+                  setStandingsTeamFilter(event.target.value);
+                }}
+              >
+                <option value={ALL_TEAMS_FILTER}>All</option>
+                {standingsTeamOptions.map((teamName) => (
+                  <option key={teamName} value={teamName}>
+                    {teamName}
+                  </option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </label>
           </div>
+
+          {filteredStandings.length > 0 ? (
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Team</th>
+                    <th>Points</th>
+                    <th>Detail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStandings.map((row) => (
+                    <tr className={selectedPlayerDetail?.player.playerId === row.playerId ? "table-row--active" : ""} key={row.playerId}>
+                      <td>{row.rank}</td>
+                      <td>{row.playerName}</td>
+                      <td>{row.teamName}</td>
+                      <td>{row.totalPoints}</td>
+                      <td className="button-cell">
+                        <button
+                          type="button"
+                          className={`small-button ${selectedPlayerDetail?.player.playerId === row.playerId ? "small-button--active" : ""}`}
+                          onClick={() => {
+                            void loadPlayerStandingDetail(row);
+                          }}
+                          disabled={isLoadingDetail}
+                          aria-pressed={selectedPlayerDetail?.player.playerId === row.playerId}
+                        >
+                          {isLoadingDetail && selectedPlayerDetail?.player.playerId === row.playerId ? "Loading..." : "View"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="empty-state">No standings rows match the active player/team filters.</p>
+          )}
         </section>
       )}
 
@@ -505,9 +660,40 @@ export default function App() {
                 </div>
               </div>
 
+              {riderPreviewStageOptions.length > 0 && (
+                <div className="detail-toolbar">
+                  <span className="detail-toolbar__label">Filter stages</span>
+                  <div className="detail-toolbar__actions">
+                    <button
+                      type="button"
+                      className={`small-button ${riderPreviewStageFilter === ALL_RIDER_PREVIEW_STAGES ? "small-button--active" : ""}`}
+                      onClick={() => {
+                        setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
+                      }}
+                      aria-pressed={riderPreviewStageFilter === ALL_RIDER_PREVIEW_STAGES}
+                    >
+                      All
+                    </button>
+                    {riderPreviewStageOptions.map((stage) => (
+                      <button
+                        type="button"
+                        className={`small-button ${riderPreviewStageFilter === stage ? "small-button--active" : ""}`}
+                        onClick={() => {
+                          setRiderPreviewStageFilter(stage);
+                        }}
+                        key={`rider-preview-stage-${stage}`}
+                        aria-pressed={riderPreviewStageFilter === stage}
+                      >
+                        Stage {stage}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {riderPreviewErrorMessage !== "" && <p className="message message--error">{riderPreviewErrorMessage}</p>}
 
-              {selectedRiderScorePreview.length > 0 ? (
+              {filteredRiderPreviewRows.length > 0 ? (
                 <div className="table-scroll">
                   <table>
                     <thead>
@@ -522,7 +708,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedRiderScorePreview.map((previewRow) => (
+                      {filteredRiderPreviewRows.map((previewRow) => (
                         <tr key={previewRow.key}>
                           <td>{previewRow.stage}</td>
                           <td>{previewRow.playerName}</td>
@@ -559,7 +745,13 @@ export default function App() {
                 </div>
               ) : (
                 !isLoadingRiderPreview &&
-                riderPreviewErrorMessage === "" && <p className="empty-state">No preview rows found for this rider.</p>
+                riderPreviewErrorMessage === "" && (
+                  <p className="empty-state">
+                    {selectedRiderScorePreview.length > 0
+                      ? "No preview rows match the active stage filter."
+                      : "No preview rows found for this rider."}
+                  </p>
+                )
               )}
             </section>
           )}

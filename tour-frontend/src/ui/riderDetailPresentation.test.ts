@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildRiderStageScorePreview } from "./riderDetailPresentation";
+import {
+  ALL_RIDER_PREVIEW_STAGES,
+  buildRiderStageScorePreview,
+  filterRiderPreviewByStage,
+  getRiderPreviewStageOptions
+} from "./riderDetailPresentation";
 import type { PlayerStandingDetail } from "../api/types";
 
 const playerDetails: PlayerStandingDetail[] = [
@@ -105,6 +110,19 @@ describe("riderDetailPresentation", () => {
 
   it("returns empty when rider is absent", () => {
     expect(buildRiderStageScorePreview(playerDetails, 999)).toEqual([]);
+  });
+
+  it("returns rider preview stage options sorted descending", () => {
+    const preview = buildRiderStageScorePreview(playerDetails, 7);
+
+    expect(getRiderPreviewStageOptions(preview)).toEqual([5, 4]);
+  });
+
+  it("filters rider preview by stage and supports ALL filter", () => {
+    const preview = buildRiderStageScorePreview(playerDetails, 7);
+
+    expect(filterRiderPreviewByStage(preview, 4)).toEqual([preview[1]]);
+    expect(filterRiderPreviewByStage(preview, ALL_RIDER_PREVIEW_STAGES)).toEqual(preview);
   });
 });
 
