@@ -144,12 +144,12 @@ export default function App() {
     }
   };
 
-  const loadRiderScorePreview = async (rider: RiderSummary) => {
+  const loadRiderScorePreview = async (rider: RiderSummary, mode: "toggle" | "open" = "toggle") => {
     if (activeEditionId === null) {
       return;
     }
 
-    if (selectedRider?.riderId === rider.riderId) {
+    if (mode === "toggle" && selectedRider?.riderId === rider.riderId) {
       setSelectedRider(null);
       setSelectedRiderScorePreview([]);
       setRiderPreviewErrorMessage("");
@@ -175,6 +175,75 @@ export default function App() {
     } finally {
       setIsLoadingRiderPreview(false);
     }
+  };
+
+  const openPlayerDetailFromRiderPreview = async (playerId: number) => {
+    if (activeEditionId === null) {
+      return;
+    }
+
+    setErrorMessage("");
+    setActiveView(VIEW_STANDINGS);
+
+    let nextStandings = standings;
+    if (nextStandings.length === 0) {
+      setIsLoading(true);
+      try {
+        const standingsResponse = await apiClient.getStandings(activeEditionId);
+        setStandings(standingsResponse.standings);
+        nextStandings = standingsResponse.standings;
+      } catch (error) {
+        const nextErrorMessage = error instanceof Error ? error.message : "Unknown error";
+        setErrorMessage(`Failed to load standings for player detail: ${nextErrorMessage}`);
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    const selectedStanding = nextStandings.find((standing) => standing.playerId === playerId);
+    if (selectedStanding === undefined) {
+      setErrorMessage("Player is no longer present in the current published standings.");
+      return;
+    }
+
+    await loadPlayerStandingDetail(selectedStanding);
+  };
+
+  const openRiderFromPlayerDetail = async (riderId: number) => {
+    if (activeEditionId === null) {
+      return;
+    }
+
+    setErrorMessage("");
+    setActiveView(VIEW_RIDERS);
+
+    let nextRiders = riders;
+    if (nextRiders.length === 0) {
+      setIsLoading(true);
+      try {
+        const riderResponse = await apiClient.listRiders(activeEditionId);
+        setRiders(riderResponse.riders);
+        nextRiders = riderResponse.riders;
+      } catch (error) {
+        const nextErrorMessage = error instanceof Error ? error.message : "Unknown error";
+        setErrorMessage(`Failed to load riders for detail jump: ${nextErrorMessage}`);
+        return;
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    const selectedDetailRider = nextRiders.find((rider) => rider.riderId === riderId);
+    if (selectedDetailRider === undefined) {
+      setErrorMessage("Rider from player detail is not available in the current edition rider list.");
+      return;
+    }
+
+    setRiderSearchQuery(selectedDetailRider.name);
+    setRiderNationalityFilter(ALL_NATIONALITIES);
+    setIncludeWithdrawnRiders(true);
+    await loadRiderScorePreview(selectedDetailRider, "open");
   };
 
   return (
@@ -449,6 +518,7 @@ export default function App() {
                         <th>Substitute</th>
                         <th>Points</th>
                         <th>Contributions</th>
+                        <th>Detail</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -469,6 +539,18 @@ export default function App() {
                             ) : (
                               <span className="muted">No score contributions recorded.</span>
                             )}
+                          </td>
+                          <td className="button-cell">
+                            <button
+                              type="button"
+                              className="small-button"
+                              onClick={() => {
+                                void openPlayerDetailFromRiderPreview(previewRow.playerId);
+                              }}
+                              disabled={isLoadingDetail || isLoading}
+                            >
+                              Open detail
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -600,6 +682,7 @@ export default function App() {
                                 <th>Substitute</th>
                                 <th>Points</th>
                                 <th>Score contributions</th>
+                                <th>Rider detail</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -632,6 +715,18 @@ export default function App() {
                                       ) : (
                                         <span className="muted">No score contributions recorded.</span>
                                       )}
+                                    </td>
+                                    <td className="button-cell">
+                                      <button
+                                        type="button"
+                                        className="small-button"
+                                        onClick={() => {
+                                          void openRiderFromPlayerDetail(riderScore.rider.riderId);
+                                        }}
+                                        disabled={isLoading || isLoadingRiderPreview}
+                                      >
+                                        Open rider
+                                      </button>
                                     </td>
                                   </tr>
                                 );

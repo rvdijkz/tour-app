@@ -5,6 +5,7 @@ const DEFAULT_CONTRIBUTION_LIMIT = 2;
 
 export interface RiderStageScorePreview {
   key: string;
+  playerId: number;
   playerName: string;
   stage: number;
   position: number;
@@ -29,6 +30,7 @@ export function buildRiderStageScorePreview(
 
         previewEntries.push({
           key: `${playerDetail.player.playerId}-${stageHistoryItem.stage}-${riderScore.position}-${riderScore.rider.riderId}`,
+          playerId: playerDetail.player.playerId,
           playerName: playerDetail.player.playerName,
           stage: stageHistoryItem.stage,
           position: riderScore.position,

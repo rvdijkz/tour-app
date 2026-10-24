@@ -91,6 +91,7 @@ describe("riderDetailPresentation", () => {
 
     expect(preview).toHaveLength(2);
     expect(preview[0].stage).toBe(5);
+    expect(preview[0].playerId).toBe(100);
     expect(preview[0].playerName).toBe("Player One");
     expect(preview[1].stage).toBe(4);
     expect(preview[1].playerName).toBe("Player Two");

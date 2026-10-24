@@ -35,6 +35,7 @@ npm run test
 - The table renders rank, player, team, and points from the backend response.
 - Click **View** on a row to call `GET /editions/{editionId}/standings/{playerId}` and render each stage's substitutions plus the first three score contributions per rider score.
 - Use the detail stage filter chips (**All**, **Stage N**) to focus the player history on specific stages.
+- In player detail, click **Open rider** on a rider-score row to jump to **Riders**, auto-focus that rider, and open score preview.
 - Select **Riders** and click **Load Riders** to call:
   - `GET /editions/current`
   - `GET /editions/{editionId}/riders`
@@ -43,4 +44,5 @@ npm run test
   - `GET /editions/{editionId}/standings`
   - `GET /editions/{editionId}/standings/{playerId}`
 - The rider drawer renders stage/points/substitute state and a short score-contribution preview.
+- From the rider drawer, click **Open detail** to jump to standings and load that player's full stage history.
 
