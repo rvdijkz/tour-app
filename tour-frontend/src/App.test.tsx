@@ -64,6 +64,79 @@ describe("App admin MVP flows", () => {
     });
   });
 
+  it("shows loading state while create edition request is in flight", async () => {
+    let resolveCreateEdition!: (value: {
+      editionId: number;
+      year: number;
+      createdAt: string;
+      cleared: {
+        teams: boolean;
+        predictions: boolean;
+        stageResults: boolean;
+        standings: boolean;
+      };
+    }) => void;
+
+    vi.spyOn(TourApiClient.prototype, "createEdition").mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCreateEdition = resolve;
+        })
+    );
+
+    renderAdminView();
+
+    setInputValue("Edition year", "2029");
+    const createEditionButton = screen.getByRole("button", { name: "Create edition" });
+    fireEvent.click(createEditionButton);
+
+    await waitFor(() => {
+      expect(createEditionButton.textContent).toBe("Saving...");
+      expect(createEditionButton).toHaveProperty("disabled", true);
+    });
+
+    resolveCreateEdition({
+      editionId: 12,
+      year: 2029,
+      createdAt: "2026-11-22T10:00:00Z",
+      cleared: {
+        teams: true,
+        predictions: true,
+        stageResults: true,
+        standings: true
+      }
+    });
+
+    expect(await screen.findByText("Edition 12 created for year 2029.")).toBeDefined();
+  });
+
+  it("loads admin context and pre-fills editable fields from current edition", async () => {
+    const getCurrentEditionSpy = vi.spyOn(TourApiClient.prototype, "getCurrentEdition").mockResolvedValue({
+      editionId: 9,
+      year: 2027,
+      entryDeadline: "2027-06-01T12:34:00Z",
+      reserveBudget: 18,
+      requiredNationality: "FRA",
+      currentStage: 4,
+      doublePointsStages: [4, 9]
+    });
+
+    renderAdminView();
+
+    fireEvent.click(screen.getByRole("button", { name: "Load Admin Context" }));
+
+    await waitFor(() => {
+      expect(getCurrentEditionSpy).toHaveBeenCalledTimes(1);
+      expect(getInputByLabel("Edition id").value).toBe("9");
+      expect(getInputByLabel("Reserve budget").value).toBe("18");
+      expect(getInputByLabel("3-letter code").value).toBe("FRA");
+      expect(getInputByLabel("Comma-separated stages").value).toBe("4,9");
+      expect(getInputByLabel("Deadline (local)").value).not.toBe("");
+    });
+
+    expect(screen.getByText("Edition 2027 - Stage 4")).toBeDefined();
+  });
+
   it("normalizes required nationality payload to trimmed uppercase code", async () => {
     const requiredNationalitySpy = vi.spyOn(TourApiClient.prototype, "updateRequiredNationality").mockResolvedValue({
       editionId: 7,

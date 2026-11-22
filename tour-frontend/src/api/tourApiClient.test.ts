@@ -6,9 +6,12 @@ describe("TourApiClient", () => {
   it("calls current-edition endpoint", async () => {
     const request = vi.fn().mockResolvedValue({
       editionId: 1,
-      editionYear: 2026,
-      name: "Tour",
-      stage: 5
+      year: 2026,
+      entryDeadline: "2026-07-01T18:00:00Z",
+      reserveBudget: 20,
+      requiredNationality: "NLD",
+      currentStage: 5,
+      doublePointsStages: [5, 12]
     });
 
     const client = new TourApiClient({ request } as unknown as HttpClient);

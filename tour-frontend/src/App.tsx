@@ -52,6 +52,21 @@ const VIEW_ADMIN: AppView = "admin";
 const ALL_NATIONALITIES = "ALL";
 const RIDER_PREVIEW_PLAYER_LIMIT = 8;
 
+function formatEditionLabel(year: number, stage: number): string {
+  return `Edition ${year} - Stage ${stage}`;
+}
+
+function toDateTimeLocalValue(isoDateTime: string): string {
+  const parsed = new Date(isoDateTime);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  const timezoneOffsetMs = parsed.getTimezoneOffset() * 60 * 1000;
+  const localDate = new Date(parsed.getTime() - timezoneOffsetMs);
+  return localDate.toISOString().slice(0, 16);
+}
+
 /**
  * Minimal app shell proving API layer usage stays outside UI components.
  */
@@ -319,19 +334,23 @@ export default function App() {
 
       if (view === VIEW_STANDINGS) {
         const standingsResponse = await apiClient.getStandings(edition.editionId);
-        setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${standingsResponse.stage}`);
+        setEditionLabel(formatEditionLabel(edition.year, standingsResponse.stage));
         setStandings(standingsResponse.standings);
         setStandingsPlayerQuery("");
         setStandingsTeamFilter(ALL_TEAMS_FILTER);
         setStandingsSort(STANDINGS_SORT_RANK);
       } else if (view === VIEW_RIDERS) {
         const riderResponse = await apiClient.listRiders(edition.editionId);
-        setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${edition.stage}`);
+        setEditionLabel(formatEditionLabel(edition.year, edition.currentStage));
         setRiders(riderResponse.riders);
         setRiderSort(RIDER_SORT_NAME);
       } else {
-        setEditionLabel(`${edition.name} (${edition.editionYear}) - Stage ${edition.stage}`);
+        setEditionLabel(formatEditionLabel(edition.year, edition.currentStage));
         setAdminEditionIdInput(String(edition.editionId));
+        setAdminEntryDeadline(toDateTimeLocalValue(edition.entryDeadline));
+        setAdminReserveBudget(String(edition.reserveBudget));
+        setAdminRequiredNationality(edition.requiredNationality);
+        setAdminDoublePointsStages(edition.doublePointsStages.join(","));
       }
 
       if (view === VIEW_RIDERS) {

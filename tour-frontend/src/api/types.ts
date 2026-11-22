@@ -11,9 +11,12 @@ export interface HealthResponse {
  */
 export interface EditionSummary {
   editionId: number;
-  editionYear: number;
-  name: string;
-  stage: number;
+  year: number;
+  entryDeadline: string;
+  reserveBudget: number;
+  requiredNationality: string;
+  currentStage: number;
+  doublePointsStages: number[];
 }
 
 /**
