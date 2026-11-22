@@ -238,6 +238,23 @@ export default function App() {
     return "No changes to save.";
   };
 
+  const getAdminHintId = (action: AdminAction): string => `admin-hint-${action}`;
+
+  const getAdminFeedbackId = (action: AdminAction): string => `admin-feedback-${action}`;
+
+  const getAdminSaveDescribedBy = (action: AdminAction, canSave: boolean): string | undefined => {
+    const describedByIds: string[] = [];
+    if (getSaveHint(canSave) !== "") {
+      describedByIds.push(getAdminHintId(action));
+    }
+
+    if (adminFeedback !== null && adminFeedback.action === action) {
+      describedByIds.push(getAdminFeedbackId(action));
+    }
+
+    return describedByIds.length > 0 ? describedByIds.join(" ") : undefined;
+  };
+
   const resetStandingsFilters = () => {
     setStandingsPlayerQuery("");
     setStandingsTeamFilter(ALL_TEAMS_FILTER);
@@ -805,7 +822,7 @@ export default function App() {
 
     const className = adminFeedback.kind === "error" ? "message message--error admin-card__message" : "message message--info admin-card__message";
     return (
-      <p className={className} role="status" aria-live="polite" aria-atomic="true">
+      <p id={getAdminFeedbackId(action)} className={className} role="status" aria-live="polite" aria-atomic="true">
         {adminFeedback.message}
       </p>
     );
@@ -1475,13 +1492,18 @@ export default function App() {
                   type="button"
                   className="small-button"
                   disabled={isLoadingAdmin || !canSaveEntryDeadline}
+                  aria-describedby={getAdminSaveDescribedBy("entryDeadline", canSaveEntryDeadline)}
                   onClick={() => {
                     void saveEditionDeadline();
                   }}
                 >
                   {activeAdminAction === "entryDeadline" ? "Saving..." : "Save deadline"}
                 </button>
-                {getSaveHint(canSaveEntryDeadline) !== "" && <p className="admin-form-hint">{getSaveHint(canSaveEntryDeadline)}</p>}
+                {getSaveHint(canSaveEntryDeadline) !== "" && (
+                  <p id={getAdminHintId("entryDeadline")} className="admin-form-hint">
+                    {getSaveHint(canSaveEntryDeadline)}
+                  </p>
+                )}
                 {renderAdminFeedback("entryDeadline")}
               </div>
             </section>
@@ -1521,13 +1543,18 @@ export default function App() {
                   type="button"
                   className="small-button"
                   disabled={isLoadingAdmin || !canSaveReserveBudget}
+                  aria-describedby={getAdminSaveDescribedBy("reserveBudget", canSaveReserveBudget)}
                   onClick={() => {
                     void saveReserveBudget();
                   }}
                 >
                   {activeAdminAction === "reserveBudget" ? "Saving..." : "Save reserve budget"}
                 </button>
-                {getSaveHint(canSaveReserveBudget) !== "" && <p className="admin-form-hint">{getSaveHint(canSaveReserveBudget)}</p>}
+                {getSaveHint(canSaveReserveBudget) !== "" && (
+                  <p id={getAdminHintId("reserveBudget")} className="admin-form-hint">
+                    {getSaveHint(canSaveReserveBudget)}
+                  </p>
+                )}
                 {renderAdminFeedback("reserveBudget")}
               </div>
             </section>
@@ -1566,6 +1593,7 @@ export default function App() {
                   type="button"
                   className="small-button"
                   disabled={isLoadingAdmin || !canSaveRequiredNationality}
+                  aria-describedby={getAdminSaveDescribedBy("requiredNationality", canSaveRequiredNationality)}
                   onClick={() => {
                     void saveRequiredNationality();
                   }}
@@ -1573,7 +1601,9 @@ export default function App() {
                   {activeAdminAction === "requiredNationality" ? "Saving..." : "Save required nationality"}
                 </button>
                 {getSaveHint(canSaveRequiredNationality) !== "" && (
-                  <p className="admin-form-hint">{getSaveHint(canSaveRequiredNationality)}</p>
+                  <p id={getAdminHintId("requiredNationality")} className="admin-form-hint">
+                    {getSaveHint(canSaveRequiredNationality)}
+                  </p>
                 )}
                 {renderAdminFeedback("requiredNationality")}
               </div>
@@ -1613,6 +1643,7 @@ export default function App() {
                   type="button"
                   className="small-button"
                   disabled={isLoadingAdmin || !canSaveDoublePointsStages}
+                  aria-describedby={getAdminSaveDescribedBy("doublePointsStages", canSaveDoublePointsStages)}
                   onClick={() => {
                     void saveDoublePointsStages();
                   }}
@@ -1620,7 +1651,9 @@ export default function App() {
                   {activeAdminAction === "doublePointsStages" ? "Saving..." : "Save double points stages"}
                 </button>
                 {getSaveHint(canSaveDoublePointsStages) !== "" && (
-                  <p className="admin-form-hint">{getSaveHint(canSaveDoublePointsStages)}</p>
+                  <p id={getAdminHintId("doublePointsStages")} className="admin-form-hint">
+                    {getSaveHint(canSaveDoublePointsStages)}
+                  </p>
                 )}
                 {renderAdminFeedback("doublePointsStages")}
               </div>

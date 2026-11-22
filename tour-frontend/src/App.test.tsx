@@ -150,6 +150,9 @@ describe("App admin MVP flows", () => {
       expect(getInputByLabel("Comma-separated stages").value).toBe("4,9");
       expect(getInputByLabel("Deadline (local)").value).not.toBe("");
       expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", true);
+      expect(screen.getByRole("button", { name: "Save reserve budget" }).getAttribute("aria-describedby")).toContain(
+        "admin-hint-reserveBudget"
+      );
     });
 
     expect(screen.getAllByText("No changes to save.")).toHaveLength(4);
@@ -161,6 +164,7 @@ describe("App admin MVP flows", () => {
 
     setInputValue("Reserve budget", "19");
     expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", false);
+    expect(screen.getByRole("button", { name: "Save reserve budget" }).getAttribute("aria-describedby")).toBeNull();
     const reserveBudgetCard = screen.getByRole("heading", { name: "Reserve budget" }).closest("section");
     expect(reserveBudgetCard).not.toBeNull();
     expect(within(reserveBudgetCard as HTMLElement).queryByText("No changes to save.")).toBeNull();
@@ -255,6 +259,10 @@ describe("App admin MVP flows", () => {
     expect(within(createEditionCard as HTMLElement).queryByText("Update reserve budget failed: backend unavailable")).toBeNull();
     expect(failureMessage.getAttribute("role")).toBe("status");
     expect(failureMessage.getAttribute("aria-live")).toBe("polite");
+    expect(failureMessage.getAttribute("id")).toBe("admin-feedback-reserveBudget");
+    expect(screen.getByRole("button", { name: "Save reserve budget" }).getAttribute("aria-describedby")).toContain(
+      "admin-feedback-reserveBudget"
+    );
   });
 
   it("auto-clears success feedback messages after a short timeout", async () => {
