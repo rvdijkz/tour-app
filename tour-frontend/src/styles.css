@@ -474,6 +474,13 @@ tbody tr:hover {
   max-height: 2rem;
 }
 
+@media (hover: none), (pointer: coarse) {
+  .admin-form-hint {
+    opacity: 1;
+    max-height: 2rem;
+  }
+}
+
 .admin-form-grid {
   display: grid;
   gap: 0.7rem;
