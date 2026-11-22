@@ -46,6 +46,14 @@ import {
 
 type AppView = "standings" | "riders" | "admin";
 type AdminAction = "createEdition" | "entryDeadline" | "reserveBudget" | "requiredNationality" | "doublePointsStages";
+type AdminSectionKey =
+  | "context"
+  | "createEdition"
+  | "targetEdition"
+  | "entryDeadline"
+  | "reserveBudget"
+  | "requiredNationality"
+  | "doublePointsStages";
 type AdminFeedback = {
   action: AdminAction;
   message: string;
@@ -241,6 +249,8 @@ export default function App() {
   const getAdminHintId = (action: AdminAction): string => `admin-hint-${action}`;
 
   const getAdminFeedbackId = (action: AdminAction): string => `admin-feedback-${action}`;
+
+  const getAdminSectionHeadingId = (section: AdminSectionKey): string => `admin-section-${section}`;
 
   const getAdminFeedbackDescribedBy = (action: AdminAction): string | undefined => {
     if (adminFeedback === null || adminFeedback.action !== action) {
@@ -1340,19 +1350,19 @@ export default function App() {
       )}
 
       {activeView === VIEW_ADMIN && (
-        <section className="panel">
+        <section className="panel" aria-labelledby="admin-panel-title">
           <div className="panel__header">
             <div>
-              <h2 className="panel__title">Admin Edition Configuration</h2>
+              <h2 id="admin-panel-title" className="panel__title">Admin Edition Configuration</h2>
               <p className="panel__subtitle">Create editions and update core configuration fields through admin endpoints.</p>
             </div>
             <span className="score-chip">MVP</span>
           </div>
 
-          <section className="list-card admin-card">
+          <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("context")}>
             <div className="panel__header" style={{ marginBottom: 0 }}>
               <div>
-                <h3>Current admin context</h3>
+                <h3 id={getAdminSectionHeadingId("context")}>Current admin context</h3>
                 <p className="panel__subtitle">Read-only snapshot of the active edition configuration.</p>
               </div>
               <button
@@ -1404,8 +1414,8 @@ export default function App() {
           </section>
 
           <div className="admin-grid">
-            <section className="list-card admin-card">
-              <h3>Create edition</h3>
+            <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("createEdition")}>
+              <h3 id={getAdminSectionHeadingId("createEdition")}>Create edition</h3>
               <div className="admin-form-grid">
                 <label className="rider-filter">
                   <span>Edition year</span>
@@ -1434,9 +1444,9 @@ export default function App() {
               </div>
             </section>
 
-            <section className="list-card admin-card">
+            <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("targetEdition")}>
               <div className="admin-card__header">
-                <h3>Target edition</h3>
+                <h3 id={getAdminSectionHeadingId("targetEdition")}>Target edition</h3>
                 <div className="admin-card__actions">
                   {isTargetEditionDirty && <span className="active-chip">Changed</span>}
                   {isTargetEditionDirty && (
@@ -1468,9 +1478,9 @@ export default function App() {
               </div>
             </section>
 
-            <section className="list-card admin-card">
+            <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("entryDeadline")}>
               <div className="admin-card__header">
-                <h3>Entry deadline</h3>
+                <h3 id={getAdminSectionHeadingId("entryDeadline")}>Entry deadline</h3>
                 <div className="admin-card__actions">
                   {isEntryDeadlineDirty && <span className="active-chip">Changed</span>}
                   {isEntryDeadlineDirty && (
@@ -1517,9 +1527,9 @@ export default function App() {
               </div>
             </section>
 
-            <section className="list-card admin-card">
+            <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("reserveBudget")}>
               <div className="admin-card__header">
-                <h3>Reserve budget</h3>
+                <h3 id={getAdminSectionHeadingId("reserveBudget")}>Reserve budget</h3>
                 <div className="admin-card__actions">
                   {isReserveBudgetDirty && <span className="active-chip">Changed</span>}
                   {isReserveBudgetDirty && (
@@ -1568,9 +1578,9 @@ export default function App() {
               </div>
             </section>
 
-            <section className="list-card admin-card">
+            <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("requiredNationality")}>
               <div className="admin-card__header">
-                <h3>Required nationality</h3>
+                <h3 id={getAdminSectionHeadingId("requiredNationality")}>Required nationality</h3>
                 <div className="admin-card__actions">
                   {isRequiredNationalityDirty && <span className="active-chip">Changed</span>}
                   {isRequiredNationalityDirty && (
@@ -1618,9 +1628,9 @@ export default function App() {
               </div>
             </section>
 
-            <section className="list-card admin-card">
+            <section className="list-card admin-card" aria-labelledby={getAdminSectionHeadingId("doublePointsStages")}>
               <div className="admin-card__header">
-                <h3>Double points stages</h3>
+                <h3 id={getAdminSectionHeadingId("doublePointsStages")}>Double points stages</h3>
                 <div className="admin-card__actions">
                   {isDoublePointsStagesDirty && <span className="active-chip">Changed</span>}
                   {isDoublePointsStagesDirty && (

@@ -156,6 +156,8 @@ describe("App admin MVP flows", () => {
       expect(screen.getByRole("button", { name: "Save reserve budget" }).getAttribute("aria-describedby")).toContain(
         "admin-hint-reserveBudget"
       );
+      expect(screen.getByRole("region", { name: "Create edition" })).toBeDefined();
+      expect(screen.getByRole("region", { name: "Reserve budget" })).toBeDefined();
     });
 
     expect(screen.getAllByText("No changes to save.")).toHaveLength(4);
