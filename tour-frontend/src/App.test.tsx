@@ -152,6 +152,8 @@ describe("App admin MVP flows", () => {
       expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", true);
     });
 
+    expect(screen.getAllByText("No changes to save.")).toHaveLength(4);
+
     expect(screen.getByText("Edition 2027 - Stage 4")).toBeDefined();
     expect(screen.getByText("#9 (2027)")).toBeDefined();
     expect(screen.getByText("4, 9")).toBeDefined();
@@ -159,10 +161,14 @@ describe("App admin MVP flows", () => {
 
     setInputValue("Reserve budget", "19");
     expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", false);
+    const reserveBudgetCard = screen.getByRole("heading", { name: "Reserve budget" }).closest("section");
+    expect(reserveBudgetCard).not.toBeNull();
+    expect(within(reserveBudgetCard as HTMLElement).queryByText("No changes to save.")).toBeNull();
     expect(screen.getByRole("button", { name: "Reset reserve budget" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Reset reserve budget" }));
     expect(getInputByLabel("Reserve budget").value).toBe("18");
     expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", true);
+    expect(within(reserveBudgetCard as HTMLElement).getByText("No changes to save.")).toBeDefined();
     expect(screen.queryByRole("button", { name: "Reset reserve budget" })).toBeNull();
 
     setInputValue("Comma-separated stages", "9,4");

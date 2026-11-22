@@ -230,6 +230,14 @@ export default function App() {
   const canSaveRequiredNationality = adminContext === null || isRequiredNationalityDirty;
   const canSaveDoublePointsStages = adminContext === null || isDoublePointsStagesDirty;
 
+  const getSaveHint = (canSave: boolean): string => {
+    if (adminContext === null || isLoadingAdmin || canSave) {
+      return "";
+    }
+
+    return "No changes to save.";
+  };
+
   const resetStandingsFilters = () => {
     setStandingsPlayerQuery("");
     setStandingsTeamFilter(ALL_TEAMS_FILTER);
@@ -1469,6 +1477,7 @@ export default function App() {
                 >
                   {activeAdminAction === "entryDeadline" ? "Saving..." : "Save deadline"}
                 </button>
+                {getSaveHint(canSaveEntryDeadline) !== "" && <p className="admin-form-hint">{getSaveHint(canSaveEntryDeadline)}</p>}
                 {renderAdminFeedback("entryDeadline")}
               </div>
             </section>
@@ -1514,6 +1523,7 @@ export default function App() {
                 >
                   {activeAdminAction === "reserveBudget" ? "Saving..." : "Save reserve budget"}
                 </button>
+                {getSaveHint(canSaveReserveBudget) !== "" && <p className="admin-form-hint">{getSaveHint(canSaveReserveBudget)}</p>}
                 {renderAdminFeedback("reserveBudget")}
               </div>
             </section>
@@ -1558,6 +1568,9 @@ export default function App() {
                 >
                   {activeAdminAction === "requiredNationality" ? "Saving..." : "Save required nationality"}
                 </button>
+                {getSaveHint(canSaveRequiredNationality) !== "" && (
+                  <p className="admin-form-hint">{getSaveHint(canSaveRequiredNationality)}</p>
+                )}
                 {renderAdminFeedback("requiredNationality")}
               </div>
             </section>
@@ -1602,6 +1615,9 @@ export default function App() {
                 >
                   {activeAdminAction === "doublePointsStages" ? "Saving..." : "Save double points stages"}
                 </button>
+                {getSaveHint(canSaveDoublePointsStages) !== "" && (
+                  <p className="admin-form-hint">{getSaveHint(canSaveDoublePointsStages)}</p>
+                )}
                 {renderAdminFeedback("doublePointsStages")}
               </div>
             </section>
