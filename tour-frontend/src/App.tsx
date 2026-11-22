@@ -282,6 +282,25 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (adminFeedback === null || adminFeedback.kind !== "info") {
+      return;
+    }
+
+    const { action, message } = adminFeedback;
+    const timeoutId = window.setTimeout(() => {
+      setAdminFeedback((previous) =>
+        previous !== null && previous.kind === "info" && previous.action === action && previous.message === message
+          ? null
+          : previous
+      );
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [adminFeedback]);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }

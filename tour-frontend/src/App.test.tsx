@@ -245,5 +245,52 @@ describe("App admin MVP flows", () => {
     expect(within(reserveBudgetCard as HTMLElement).getByText(failureMessage.textContent ?? "")).toBeDefined();
     expect(within(createEditionCard as HTMLElement).queryByText("Update reserve budget failed: backend unavailable")).toBeNull();
   });
+
+  it("auto-clears success feedback messages after a short timeout", async () => {
+    vi.spyOn(TourApiClient.prototype, "createEdition").mockResolvedValue({
+      editionId: 15,
+      year: 2030,
+      createdAt: "2026-11-22T11:00:00Z",
+      cleared: {
+        teams: true,
+        predictions: true,
+        stageResults: true,
+        standings: true
+      }
+    });
+
+    renderAdminView();
+
+    setInputValue("Edition year", "2030");
+    fireEvent.click(screen.getByRole("button", { name: "Create edition" }));
+
+    expect(await screen.findByText("Edition 15 created for year 2030.")).toBeDefined();
+
+    await new Promise((resolve) => {
+      window.setTimeout(resolve, 3100);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText("Edition 15 created for year 2030.")).toBeNull();
+    });
+  });
+
+  it("keeps error feedback visible over time", async () => {
+    vi.useFakeTimers();
+    try {
+      renderAdminView();
+
+      setInputValue("Edition id", "0");
+      fireEvent.click(screen.getByRole("button", { name: "Save reserve budget" }));
+
+      await Promise.resolve();
+      expect(screen.getByText("Enter a valid edition id.")).toBeDefined();
+
+      vi.advanceTimersByTime(5000);
+      expect(screen.getByText("Enter a valid edition id.")).toBeDefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
