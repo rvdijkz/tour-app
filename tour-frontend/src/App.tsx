@@ -242,6 +242,14 @@ export default function App() {
 
   const getAdminFeedbackId = (action: AdminAction): string => `admin-feedback-${action}`;
 
+  const getAdminFeedbackDescribedBy = (action: AdminAction): string | undefined => {
+    if (adminFeedback === null || adminFeedback.action !== action) {
+      return undefined;
+    }
+
+    return getAdminFeedbackId(action);
+  };
+
   const getAdminSaveDescribedBy = (action: AdminAction, canSave: boolean): string | undefined => {
     const describedByIds: string[] = [];
     if (getSaveHint(canSave) !== "") {
@@ -1415,6 +1423,7 @@ export default function App() {
                   type="button"
                   className="small-button"
                   disabled={isLoadingAdmin}
+                  aria-describedby={getAdminFeedbackDescribedBy("createEdition")}
                   onClick={() => {
                     void createEdition();
                   }}

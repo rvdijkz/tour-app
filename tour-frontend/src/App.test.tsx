@@ -38,9 +38,12 @@ describe("App admin MVP flows", () => {
 
     expect(createEditionSpy).not.toHaveBeenCalled();
     const validationMessage = await screen.findByText("Edition year must be an integer from 2020 onward.");
+    const createEditionButton = screen.getByRole("button", { name: "Create edition" });
     const createEditionCard = screen.getByRole("heading", { name: "Create edition" }).closest("section");
     expect(createEditionCard).not.toBeNull();
     expect(within(createEditionCard as HTMLElement).getByText(validationMessage.textContent ?? "")).toBeDefined();
+    expect(validationMessage.getAttribute("id")).toBe("admin-feedback-createEdition");
+    expect(createEditionButton.getAttribute("aria-describedby")).toContain("admin-feedback-createEdition");
   });
 
   it("creates an edition and stores the returned edition id in target field", async () => {
