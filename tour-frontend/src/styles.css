@@ -180,6 +180,13 @@ select:focus {
   box-shadow: 0 12px 28px rgba(37, 99, 235, 0.3);
 }
 
+.toolbar__button:focus-visible,
+.view-toggle__button:focus-visible,
+.small-button:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
 .toolbar__button--secondary {
   background: #e2e8f0;
   color: #0f172a;
