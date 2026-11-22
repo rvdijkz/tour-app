@@ -46,6 +46,11 @@ import {
 
 type AppView = "standings" | "riders" | "admin";
 type AdminAction = "createEdition" | "entryDeadline" | "reserveBudget" | "requiredNationality" | "doublePointsStages";
+type AdminFeedback = {
+  action: AdminAction;
+  message: string;
+  kind: "info" | "error";
+};
 
 const VIEW_STANDINGS: AppView = "standings";
 const VIEW_RIDERS: AppView = "riders";
@@ -126,7 +131,7 @@ export default function App() {
   const [adminReserveBudget, setAdminReserveBudget] = useState<string>("20");
   const [adminRequiredNationality, setAdminRequiredNationality] = useState<string>("NLD");
   const [adminDoublePointsStages, setAdminDoublePointsStages] = useState<string>("5,12");
-  const [adminMessage, setAdminMessage] = useState<string>("");
+  const [adminFeedback, setAdminFeedback] = useState<AdminFeedback | null>(null);
   const [isLoadingAdmin, setIsLoadingAdmin] = useState<boolean>(false);
   const [activeAdminAction, setActiveAdminAction] = useState<AdminAction | null>(null);
   const [adminContext, setAdminContext] = useState<EditionSummary | null>(null);
@@ -552,10 +557,10 @@ export default function App() {
     await loadRiderScorePreview(selectedDetailRider, "open");
   };
 
-  const parseAdminEditionId = (): number | null => {
+  const parseAdminEditionId = (action: AdminAction): number | null => {
     const parsed = Number(adminEditionIdInput);
     if (!Number.isInteger(parsed) || parsed <= 0) {
-      setAdminMessage("Enter a valid edition id.");
+      setAdminFeedback({ action, message: "Enter a valid edition id.", kind: "error" });
       return null;
     }
 
@@ -565,20 +570,28 @@ export default function App() {
   const createEdition = async () => {
     const parsedYear = Number(adminEditionYear);
     if (!Number.isInteger(parsedYear) || parsedYear < 2020) {
-      setAdminMessage("Edition year must be an integer from 2020 onward.");
+      setAdminFeedback({
+        action: "createEdition",
+        message: "Edition year must be an integer from 2020 onward.",
+        kind: "error"
+      });
       return;
     }
 
     setIsLoadingAdmin(true);
     setActiveAdminAction("createEdition");
-    setAdminMessage("");
+    setAdminFeedback(null);
     try {
       const response = await apiClient.createEdition({ year: parsedYear });
       setAdminEditionIdInput(String(response.editionId));
-      setAdminMessage(`Edition ${response.editionId} created for year ${response.year}.`);
+      setAdminFeedback({
+        action: "createEdition",
+        message: `Edition ${response.editionId} created for year ${response.year}.`,
+        kind: "info"
+      });
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
-      setAdminMessage(`Create edition failed: ${nextError}`);
+      setAdminFeedback({ action: "createEdition", message: `Create edition failed: ${nextError}`, kind: "error" });
     } finally {
       setIsLoadingAdmin(false);
       setActiveAdminAction(null);
@@ -586,25 +599,25 @@ export default function App() {
   };
 
   const saveEditionDeadline = async () => {
-    const editionId = parseAdminEditionId();
+    const editionId = parseAdminEditionId("entryDeadline");
     if (editionId === null) {
       return;
     }
 
     if (adminEntryDeadline.trim() === "") {
-      setAdminMessage("Entry deadline is required.");
+      setAdminFeedback({ action: "entryDeadline", message: "Entry deadline is required.", kind: "error" });
       return;
     }
 
     const asDate = new Date(adminEntryDeadline);
     if (Number.isNaN(asDate.getTime())) {
-      setAdminMessage("Entry deadline must be a valid date and time.");
+      setAdminFeedback({ action: "entryDeadline", message: "Entry deadline must be a valid date and time.", kind: "error" });
       return;
     }
 
     setIsLoadingAdmin(true);
     setActiveAdminAction("entryDeadline");
-    setAdminMessage("");
+    setAdminFeedback(null);
     try {
       const response = await apiClient.updateEditionDeadline(editionId, { entryDeadline: asDate.toISOString() });
       setAdminContext((previous) =>
@@ -612,10 +625,10 @@ export default function App() {
           ? { ...previous, entryDeadline: response.entryDeadline }
           : previous
       );
-      setAdminMessage(`Deadline updated for edition ${response.editionId}.`);
+      setAdminFeedback({ action: "entryDeadline", message: `Deadline updated for edition ${response.editionId}.`, kind: "info" });
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
-      setAdminMessage(`Update deadline failed: ${nextError}`);
+      setAdminFeedback({ action: "entryDeadline", message: `Update deadline failed: ${nextError}`, kind: "error" });
     } finally {
       setIsLoadingAdmin(false);
       setActiveAdminAction(null);
@@ -623,20 +636,20 @@ export default function App() {
   };
 
   const saveReserveBudget = async () => {
-    const editionId = parseAdminEditionId();
+    const editionId = parseAdminEditionId("reserveBudget");
     if (editionId === null) {
       return;
     }
 
     const parsedBudget = Number(adminReserveBudget);
     if (!Number.isInteger(parsedBudget) || parsedBudget < 0) {
-      setAdminMessage("Reserve budget must be a non-negative integer.");
+      setAdminFeedback({ action: "reserveBudget", message: "Reserve budget must be a non-negative integer.", kind: "error" });
       return;
     }
 
     setIsLoadingAdmin(true);
     setActiveAdminAction("reserveBudget");
-    setAdminMessage("");
+    setAdminFeedback(null);
     try {
       const response = await apiClient.updateReserveBudget(editionId, { reserveBudget: parsedBudget });
       setAdminContext((previous) =>
@@ -644,10 +657,14 @@ export default function App() {
           ? { ...previous, reserveBudget: response.reserveBudget }
           : previous
       );
-      setAdminMessage(`Reserve budget set to ${response.reserveBudget} for edition ${response.editionId}.`);
+      setAdminFeedback({
+        action: "reserveBudget",
+        message: `Reserve budget set to ${response.reserveBudget} for edition ${response.editionId}.`,
+        kind: "info"
+      });
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
-      setAdminMessage(`Update reserve budget failed: ${nextError}`);
+      setAdminFeedback({ action: "reserveBudget", message: `Update reserve budget failed: ${nextError}`, kind: "error" });
     } finally {
       setIsLoadingAdmin(false);
       setActiveAdminAction(null);
@@ -655,20 +672,20 @@ export default function App() {
   };
 
   const saveRequiredNationality = async () => {
-    const editionId = parseAdminEditionId();
+    const editionId = parseAdminEditionId("requiredNationality");
     if (editionId === null) {
       return;
     }
 
     const normalizedNationality = adminRequiredNationality.trim().toUpperCase();
     if (!/^[A-Z]{3}$/.test(normalizedNationality)) {
-      setAdminMessage("Required nationality must be a 3-letter code.");
+      setAdminFeedback({ action: "requiredNationality", message: "Required nationality must be a 3-letter code.", kind: "error" });
       return;
     }
 
     setIsLoadingAdmin(true);
     setActiveAdminAction("requiredNationality");
-    setAdminMessage("");
+    setAdminFeedback(null);
     try {
       const response = await apiClient.updateRequiredNationality(editionId, { requiredNationality: normalizedNationality });
       setAdminContext((previous) =>
@@ -677,10 +694,18 @@ export default function App() {
           : previous
       );
       setAdminRequiredNationality(response.requiredNationality);
-      setAdminMessage(`Required nationality set to ${response.requiredNationality} for edition ${response.editionId}.`);
+      setAdminFeedback({
+        action: "requiredNationality",
+        message: `Required nationality set to ${response.requiredNationality} for edition ${response.editionId}.`,
+        kind: "info"
+      });
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
-      setAdminMessage(`Update required nationality failed: ${nextError}`);
+      setAdminFeedback({
+        action: "requiredNationality",
+        message: `Update required nationality failed: ${nextError}`,
+        kind: "error"
+      });
     } finally {
       setIsLoadingAdmin(false);
       setActiveAdminAction(null);
@@ -688,7 +713,7 @@ export default function App() {
   };
 
   const saveDoublePointsStages = async () => {
-    const editionId = parseAdminEditionId();
+    const editionId = parseAdminEditionId("doublePointsStages");
     if (editionId === null) {
       return;
     }
@@ -703,7 +728,11 @@ export default function App() {
     );
 
     if (parsedStages.length === 0 || parsedStages.some((stage) => stage < 1 || stage > 21)) {
-      setAdminMessage("Double points stages must contain one or more integers between 1 and 21.");
+      setAdminFeedback({
+        action: "doublePointsStages",
+        message: "Double points stages must contain one or more integers between 1 and 21.",
+        kind: "error"
+      });
       return;
     }
 
@@ -711,7 +740,7 @@ export default function App() {
 
     setIsLoadingAdmin(true);
     setActiveAdminAction("doublePointsStages");
-    setAdminMessage("");
+    setAdminFeedback(null);
     try {
       const response = await apiClient.updateDoublePointsStages(editionId, { doublePointsStages: normalizedStages });
       setAdminContext((previous) =>
@@ -720,14 +749,31 @@ export default function App() {
           : previous
       );
       setAdminDoublePointsStages(response.doublePointsStages.join(","));
-      setAdminMessage(`Double points stages updated for edition ${response.editionId}.`);
+      setAdminFeedback({
+        action: "doublePointsStages",
+        message: `Double points stages updated for edition ${response.editionId}.`,
+        kind: "info"
+      });
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
-      setAdminMessage(`Update double points stages failed: ${nextError}`);
+      setAdminFeedback({
+        action: "doublePointsStages",
+        message: `Update double points stages failed: ${nextError}`,
+        kind: "error"
+      });
     } finally {
       setIsLoadingAdmin(false);
       setActiveAdminAction(null);
     }
+  };
+
+  const renderAdminFeedback = (action: AdminAction) => {
+    if (adminFeedback === null || adminFeedback.action !== action) {
+      return null;
+    }
+
+    const className = adminFeedback.kind === "error" ? "message message--error admin-card__message" : "message message--info admin-card__message";
+    return <p className={className}>{adminFeedback.message}</p>;
   };
 
   return (
@@ -1243,8 +1289,6 @@ export default function App() {
             <span className="score-chip">MVP</span>
           </div>
 
-          {adminMessage !== "" && <p className="message message--info">{adminMessage}</p>}
-
           <section className="list-card admin-card">
             <div className="panel__header" style={{ marginBottom: 0 }}>
               <div>
@@ -1325,6 +1369,7 @@ export default function App() {
                 >
                   {activeAdminAction === "createEdition" ? "Saving..." : "Create edition"}
                 </button>
+                {renderAdminFeedback("createEdition")}
               </div>
             </section>
 
@@ -1401,6 +1446,7 @@ export default function App() {
                 >
                   {activeAdminAction === "entryDeadline" ? "Saving..." : "Save deadline"}
                 </button>
+                {renderAdminFeedback("entryDeadline")}
               </div>
             </section>
 
@@ -1445,6 +1491,7 @@ export default function App() {
                 >
                   {activeAdminAction === "reserveBudget" ? "Saving..." : "Save reserve budget"}
                 </button>
+                {renderAdminFeedback("reserveBudget")}
               </div>
             </section>
 
@@ -1488,6 +1535,7 @@ export default function App() {
                 >
                   {activeAdminAction === "requiredNationality" ? "Saving..." : "Save required nationality"}
                 </button>
+                {renderAdminFeedback("requiredNationality")}
               </div>
             </section>
 
@@ -1531,6 +1579,7 @@ export default function App() {
                 >
                   {activeAdminAction === "doublePointsStages" ? "Saving..." : "Save double points stages"}
                 </button>
+                {renderAdminFeedback("doublePointsStages")}
               </div>
             </section>
           </div>

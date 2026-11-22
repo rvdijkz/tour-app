@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import App from "./App";
 import { TourApiClient } from "./api/tourApiClient";
 
@@ -37,7 +37,10 @@ describe("App admin MVP flows", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create edition" }));
 
     expect(createEditionSpy).not.toHaveBeenCalled();
-    expect(await screen.findByText("Edition year must be an integer from 2020 onward.")).toBeDefined();
+    const validationMessage = await screen.findByText("Edition year must be an integer from 2020 onward.");
+    const createEditionCard = screen.getByRole("heading", { name: "Create edition" }).closest("section");
+    expect(createEditionCard).not.toBeNull();
+    expect(within(createEditionCard as HTMLElement).getByText(validationMessage.textContent ?? "")).toBeDefined();
   });
 
   it("creates an edition and stores the returned edition id in target field", async () => {
@@ -234,7 +237,13 @@ describe("App admin MVP flows", () => {
     setInputValue("Reserve budget", "42");
     fireEvent.click(screen.getByRole("button", { name: "Save reserve budget" }));
 
-    expect(await screen.findByText("Update reserve budget failed: backend unavailable")).toBeDefined();
+    const failureMessage = await screen.findByText("Update reserve budget failed: backend unavailable");
+    const reserveBudgetCard = screen.getByRole("heading", { name: "Reserve budget" }).closest("section");
+    const createEditionCard = screen.getByRole("heading", { name: "Create edition" }).closest("section");
+    expect(reserveBudgetCard).not.toBeNull();
+    expect(createEditionCard).not.toBeNull();
+    expect(within(reserveBudgetCard as HTMLElement).getByText(failureMessage.textContent ?? "")).toBeDefined();
+    expect(within(createEditionCard as HTMLElement).queryByText("Update reserve budget failed: backend unavailable")).toBeNull();
   });
 });
 

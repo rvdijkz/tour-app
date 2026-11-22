@@ -454,6 +454,10 @@ tbody tr:hover {
   gap: 0.45rem;
 }
 
+.admin-card__message {
+  margin-bottom: 0;
+}
+
 .admin-form-grid {
   display: grid;
   gap: 0.7rem;
