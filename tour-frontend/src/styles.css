@@ -440,6 +440,32 @@ tbody tr:hover {
   gap: 0.7rem;
 }
 
+.admin-context-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.admin-context-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 0.45rem;
+}
+
+.admin-context-list dt {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.admin-context-list dd {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+}
+
 .rider-filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

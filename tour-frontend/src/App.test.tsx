@@ -111,15 +111,26 @@ describe("App admin MVP flows", () => {
   });
 
   it("loads admin context and pre-fills editable fields from current edition", async () => {
-    const getCurrentEditionSpy = vi.spyOn(TourApiClient.prototype, "getCurrentEdition").mockResolvedValue({
-      editionId: 9,
-      year: 2027,
-      entryDeadline: "2027-06-01T12:34:00Z",
-      reserveBudget: 18,
-      requiredNationality: "FRA",
-      currentStage: 4,
-      doublePointsStages: [4, 9]
-    });
+    const getCurrentEditionSpy = vi
+      .spyOn(TourApiClient.prototype, "getCurrentEdition")
+      .mockResolvedValueOnce({
+        editionId: 9,
+        year: 2027,
+        entryDeadline: "2027-06-01T12:34:00Z",
+        reserveBudget: 18,
+        requiredNationality: "FRA",
+        currentStage: 4,
+        doublePointsStages: [4, 9]
+      })
+      .mockResolvedValueOnce({
+        editionId: 9,
+        year: 2027,
+        entryDeadline: "2027-06-02T12:34:00Z",
+        reserveBudget: 21,
+        requiredNationality: "ESP",
+        currentStage: 5,
+        doublePointsStages: [5, 10]
+      });
 
     renderAdminView();
 
@@ -135,6 +146,18 @@ describe("App admin MVP flows", () => {
     });
 
     expect(screen.getByText("Edition 2027 - Stage 4")).toBeDefined();
+    expect(screen.getByText("#9 (2027)")).toBeDefined();
+    expect(screen.getByText("4, 9")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Refresh context" }));
+
+    await waitFor(() => {
+      expect(getCurrentEditionSpy).toHaveBeenCalledTimes(2);
+      expect(screen.getByText("Edition 2027 - Stage 5")).toBeDefined();
+      expect(getInputByLabel("Reserve budget").value).toBe("21");
+      expect(getInputByLabel("3-letter code").value).toBe("ESP");
+      expect(getInputByLabel("Comma-separated stages").value).toBe("5,10");
+    });
   });
 
   it("normalizes required nationality payload to trimmed uppercase code", async () => {

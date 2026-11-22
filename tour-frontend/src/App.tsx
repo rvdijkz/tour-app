@@ -3,7 +3,7 @@ import { environment } from "./config/env";
 import { FetchHttpClient } from "./api/httpClient";
 import { TokenProvider } from "./api/tokenProvider";
 import { TourApiClient } from "./api/tourApiClient";
-import type { PlayerStandingDetail, RiderSummary, StandingRow } from "./api/types";
+import type { EditionSummary, PlayerStandingDetail, RiderSummary, StandingRow } from "./api/types";
 import {
   ALL_STAGES_FILTER,
   filterStageHistory,
@@ -67,6 +67,15 @@ function toDateTimeLocalValue(isoDateTime: string): string {
   return localDate.toISOString().slice(0, 16);
 }
 
+function formatDateTimeForDisplay(isoDateTime: string): string {
+  const parsed = new Date(isoDateTime);
+  if (Number.isNaN(parsed.getTime())) {
+    return isoDateTime;
+  }
+
+  return parsed.toLocaleString();
+}
+
 /**
  * Minimal app shell proving API layer usage stays outside UI components.
  */
@@ -105,6 +114,7 @@ export default function App() {
   const [adminDoublePointsStages, setAdminDoublePointsStages] = useState<string>("5,12");
   const [adminMessage, setAdminMessage] = useState<string>("");
   const [isLoadingAdmin, setIsLoadingAdmin] = useState<boolean>(false);
+  const [adminContext, setAdminContext] = useState<EditionSummary | null>(null);
 
   const apiClient = useMemo(() => {
     const tokenProvider = new TokenProvider(() => null);
@@ -331,6 +341,7 @@ export default function App() {
     try {
       const edition = await apiClient.getCurrentEdition();
       setActiveEditionId(edition.editionId);
+      setAdminContext(edition);
 
       if (view === VIEW_STANDINGS) {
         const standingsResponse = await apiClient.getStandings(edition.editionId);
@@ -380,6 +391,7 @@ export default function App() {
       setSelectedRiderScorePreview([]);
       setRiderPreviewErrorMessage("");
       setRiderPreviewStageFilter(ALL_RIDER_PREVIEW_STAGES);
+      setAdminContext(null);
       setErrorMessage(`Failed to load ${view}: ${nextErrorMessage}`);
     } finally {
       setIsLoading(false);
@@ -563,6 +575,11 @@ export default function App() {
     setAdminMessage("");
     try {
       const response = await apiClient.updateEditionDeadline(editionId, { entryDeadline: asDate.toISOString() });
+      setAdminContext((previous) =>
+        previous !== null && previous.editionId === response.editionId
+          ? { ...previous, entryDeadline: response.entryDeadline }
+          : previous
+      );
       setAdminMessage(`Deadline updated for edition ${response.editionId}.`);
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
@@ -588,6 +605,11 @@ export default function App() {
     setAdminMessage("");
     try {
       const response = await apiClient.updateReserveBudget(editionId, { reserveBudget: parsedBudget });
+      setAdminContext((previous) =>
+        previous !== null && previous.editionId === response.editionId
+          ? { ...previous, reserveBudget: response.reserveBudget }
+          : previous
+      );
       setAdminMessage(`Reserve budget set to ${response.reserveBudget} for edition ${response.editionId}.`);
     } catch (error) {
       const nextError = error instanceof Error ? error.message : "Unknown error";
@@ -613,6 +635,11 @@ export default function App() {
     setAdminMessage("");
     try {
       const response = await apiClient.updateRequiredNationality(editionId, { requiredNationality: normalizedNationality });
+      setAdminContext((previous) =>
+        previous !== null && previous.editionId === response.editionId
+          ? { ...previous, requiredNationality: response.requiredNationality }
+          : previous
+      );
       setAdminRequiredNationality(response.requiredNationality);
       setAdminMessage(`Required nationality set to ${response.requiredNationality} for edition ${response.editionId}.`);
     } catch (error) {
@@ -649,6 +676,11 @@ export default function App() {
     setAdminMessage("");
     try {
       const response = await apiClient.updateDoublePointsStages(editionId, { doublePointsStages: normalizedStages });
+      setAdminContext((previous) =>
+        previous !== null && previous.editionId === response.editionId
+          ? { ...previous, doublePointsStages: response.doublePointsStages }
+          : previous
+      );
       setAdminDoublePointsStages(response.doublePointsStages.join(","));
       setAdminMessage(`Double points stages updated for edition ${response.editionId}.`);
     } catch (error) {
@@ -1173,6 +1205,60 @@ export default function App() {
           </div>
 
           {adminMessage !== "" && <p className="message message--info">{adminMessage}</p>}
+
+          <section className="list-card admin-card">
+            <div className="panel__header" style={{ marginBottom: 0 }}>
+              <div>
+                <h3>Current admin context</h3>
+                <p className="panel__subtitle">Read-only snapshot of the active edition configuration.</p>
+              </div>
+              <button
+                type="button"
+                className="small-button"
+                disabled={isLoading}
+                onClick={() => {
+                  void loadCurrentEditionData(VIEW_ADMIN);
+                }}
+              >
+                {isLoading ? "Refreshing..." : "Refresh context"}
+              </button>
+            </div>
+
+            {adminContext !== null ? (
+              <dl className="admin-context-list">
+                <div>
+                  <dt>Edition</dt>
+                  <dd>
+                    #{adminContext.editionId} ({adminContext.year})
+                  </dd>
+                </div>
+                <div>
+                  <dt>Current stage</dt>
+                  <dd>{adminContext.currentStage}</dd>
+                </div>
+                <div>
+                  <dt>Entry deadline</dt>
+                  <dd>{formatDateTimeForDisplay(adminContext.entryDeadline)}</dd>
+                </div>
+                <div>
+                  <dt>Reserve budget</dt>
+                  <dd>{adminContext.reserveBudget}</dd>
+                </div>
+                <div>
+                  <dt>Required nationality</dt>
+                  <dd>{adminContext.requiredNationality}</dd>
+                </div>
+                <div>
+                  <dt>Double points stages</dt>
+                  <dd>
+                    {adminContext.doublePointsStages.length > 0 ? adminContext.doublePointsStages.join(", ") : "None"}
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="empty-state">Load admin context to inspect the current edition configuration snapshot.</p>
+            )}
+          </section>
 
           <div className="admin-grid">
             <section className="list-card admin-card">
