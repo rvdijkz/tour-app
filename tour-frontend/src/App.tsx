@@ -804,7 +804,11 @@ export default function App() {
     }
 
     const className = adminFeedback.kind === "error" ? "message message--error admin-card__message" : "message message--info admin-card__message";
-    return <p className={className}>{adminFeedback.message}</p>;
+    return (
+      <p className={className} role="status" aria-live="polite" aria-atomic="true">
+        {adminFeedback.message}
+      </p>
+    );
   };
 
   return (

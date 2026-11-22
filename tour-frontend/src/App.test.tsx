@@ -253,6 +253,8 @@ describe("App admin MVP flows", () => {
     expect(createEditionCard).not.toBeNull();
     expect(within(reserveBudgetCard as HTMLElement).getByText(failureMessage.textContent ?? "")).toBeDefined();
     expect(within(createEditionCard as HTMLElement).queryByText("Update reserve budget failed: backend unavailable")).toBeNull();
+    expect(failureMessage.getAttribute("role")).toBe("status");
+    expect(failureMessage.getAttribute("aria-live")).toBe("polite");
   });
 
   it("auto-clears success feedback messages after a short timeout", async () => {
