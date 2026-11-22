@@ -462,6 +462,16 @@ tbody tr:hover {
   margin: 0;
   font-size: 0.82rem;
   color: #64748b;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: opacity 120ms ease;
+}
+
+.admin-form-grid:hover .admin-form-hint,
+.admin-form-grid:focus-within .admin-form-hint {
+  opacity: 1;
+  max-height: 2rem;
 }
 
 .admin-form-grid {
