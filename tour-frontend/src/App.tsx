@@ -45,6 +45,7 @@ import {
 } from "./ui/riderPresentation";
 
 type AppView = "standings" | "riders" | "admin";
+type AdminAction = "createEdition" | "entryDeadline" | "reserveBudget" | "requiredNationality" | "doublePointsStages";
 
 const VIEW_STANDINGS: AppView = "standings";
 const VIEW_RIDERS: AppView = "riders";
@@ -114,6 +115,7 @@ export default function App() {
   const [adminDoublePointsStages, setAdminDoublePointsStages] = useState<string>("5,12");
   const [adminMessage, setAdminMessage] = useState<string>("");
   const [isLoadingAdmin, setIsLoadingAdmin] = useState<boolean>(false);
+  const [activeAdminAction, setActiveAdminAction] = useState<AdminAction | null>(null);
   const [adminContext, setAdminContext] = useState<EditionSummary | null>(null);
 
   const apiClient = useMemo(() => {
@@ -541,6 +543,7 @@ export default function App() {
     }
 
     setIsLoadingAdmin(true);
+    setActiveAdminAction("createEdition");
     setAdminMessage("");
     try {
       const response = await apiClient.createEdition({ year: parsedYear });
@@ -551,6 +554,7 @@ export default function App() {
       setAdminMessage(`Create edition failed: ${nextError}`);
     } finally {
       setIsLoadingAdmin(false);
+      setActiveAdminAction(null);
     }
   };
 
@@ -572,6 +576,7 @@ export default function App() {
     }
 
     setIsLoadingAdmin(true);
+    setActiveAdminAction("entryDeadline");
     setAdminMessage("");
     try {
       const response = await apiClient.updateEditionDeadline(editionId, { entryDeadline: asDate.toISOString() });
@@ -586,6 +591,7 @@ export default function App() {
       setAdminMessage(`Update deadline failed: ${nextError}`);
     } finally {
       setIsLoadingAdmin(false);
+      setActiveAdminAction(null);
     }
   };
 
@@ -602,6 +608,7 @@ export default function App() {
     }
 
     setIsLoadingAdmin(true);
+    setActiveAdminAction("reserveBudget");
     setAdminMessage("");
     try {
       const response = await apiClient.updateReserveBudget(editionId, { reserveBudget: parsedBudget });
@@ -616,6 +623,7 @@ export default function App() {
       setAdminMessage(`Update reserve budget failed: ${nextError}`);
     } finally {
       setIsLoadingAdmin(false);
+      setActiveAdminAction(null);
     }
   };
 
@@ -632,6 +640,7 @@ export default function App() {
     }
 
     setIsLoadingAdmin(true);
+    setActiveAdminAction("requiredNationality");
     setAdminMessage("");
     try {
       const response = await apiClient.updateRequiredNationality(editionId, { requiredNationality: normalizedNationality });
@@ -647,6 +656,7 @@ export default function App() {
       setAdminMessage(`Update required nationality failed: ${nextError}`);
     } finally {
       setIsLoadingAdmin(false);
+      setActiveAdminAction(null);
     }
   };
 
@@ -673,6 +683,7 @@ export default function App() {
     const normalizedStages = parsedStages.sort((left, right) => left - right);
 
     setIsLoadingAdmin(true);
+    setActiveAdminAction("doublePointsStages");
     setAdminMessage("");
     try {
       const response = await apiClient.updateDoublePointsStages(editionId, { doublePointsStages: normalizedStages });
@@ -688,6 +699,7 @@ export default function App() {
       setAdminMessage(`Update double points stages failed: ${nextError}`);
     } finally {
       setIsLoadingAdmin(false);
+      setActiveAdminAction(null);
     }
   };
 
@@ -1284,7 +1296,7 @@ export default function App() {
                     void createEdition();
                   }}
                 >
-                  {isLoadingAdmin ? "Saving..." : "Create edition"}
+                  {activeAdminAction === "createEdition" ? "Saving..." : "Create edition"}
                 </button>
               </div>
             </section>
@@ -1328,7 +1340,7 @@ export default function App() {
                     void saveEditionDeadline();
                   }}
                 >
-                  {isLoadingAdmin ? "Saving..." : "Save deadline"}
+                  {activeAdminAction === "entryDeadline" ? "Saving..." : "Save deadline"}
                 </button>
               </div>
             </section>
@@ -1356,7 +1368,7 @@ export default function App() {
                     void saveReserveBudget();
                   }}
                 >
-                  {isLoadingAdmin ? "Saving..." : "Save reserve budget"}
+                  {activeAdminAction === "reserveBudget" ? "Saving..." : "Save reserve budget"}
                 </button>
               </div>
             </section>
@@ -1383,7 +1395,7 @@ export default function App() {
                     void saveRequiredNationality();
                   }}
                 >
-                  {isLoadingAdmin ? "Saving..." : "Save required nationality"}
+                  {activeAdminAction === "requiredNationality" ? "Saving..." : "Save required nationality"}
                 </button>
               </div>
             </section>
@@ -1410,7 +1422,7 @@ export default function App() {
                     void saveDoublePointsStages();
                   }}
                 >
-                  {isLoadingAdmin ? "Saving..." : "Save double points stages"}
+                  {activeAdminAction === "doublePointsStages" ? "Saving..." : "Save double points stages"}
                 </button>
               </div>
             </section>

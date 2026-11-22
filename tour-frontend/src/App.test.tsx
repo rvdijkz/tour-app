@@ -95,6 +95,9 @@ describe("App admin MVP flows", () => {
       expect(createEditionButton).toHaveProperty("disabled", true);
     });
 
+    expect(screen.getAllByRole("button", { name: "Saving..." })).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", true);
+
     resolveCreateEdition({
       editionId: 12,
       year: 2029,
