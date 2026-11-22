@@ -151,6 +151,16 @@ describe("App admin MVP flows", () => {
     expect(screen.getByText("Edition 2027 - Stage 4")).toBeDefined();
     expect(screen.getByText("#9 (2027)")).toBeDefined();
     expect(screen.getByText("4, 9")).toBeDefined();
+    expect(screen.queryByRole("button", { name: "Reset reserve budget" })).toBeNull();
+
+    setInputValue("Reserve budget", "19");
+    expect(screen.getByRole("button", { name: "Reset reserve budget" })).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Reset reserve budget" }));
+    expect(getInputByLabel("Reserve budget").value).toBe("18");
+    expect(screen.queryByRole("button", { name: "Reset reserve budget" })).toBeNull();
+
+    setInputValue("Comma-separated stages", "9,4");
+    expect(screen.queryByRole("button", { name: "Reset stages" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Refresh context" }));
 

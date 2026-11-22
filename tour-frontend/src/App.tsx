@@ -77,6 +77,19 @@ function formatDateTimeForDisplay(isoDateTime: string): string {
   return parsed.toLocaleString();
 }
 
+function normalizeStageList(value: string): string {
+  const parsedStages = Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((part) => Number(part.trim()))
+        .filter((stage) => Number.isInteger(stage))
+    )
+  ).sort((left, right) => left - right);
+
+  return parsedStages.join(",");
+}
+
 /**
  * Minimal app shell proving API layer usage stays outside UI components.
  */
@@ -193,6 +206,20 @@ export default function App() {
     hasActiveRiderFilters ||
     hasActiveRiderPreviewStageFilter ||
     hasActiveDetailStageFilter;
+
+  const adminContextEditionId = adminContext !== null ? String(adminContext.editionId) : "";
+  const adminContextEntryDeadline = adminContext !== null ? toDateTimeLocalValue(adminContext.entryDeadline) : "";
+  const adminContextReserveBudget = adminContext !== null ? String(adminContext.reserveBudget) : "";
+  const adminContextRequiredNationality = adminContext !== null ? adminContext.requiredNationality : "";
+  const adminContextDoublePointsStages = adminContext !== null ? adminContext.doublePointsStages.join(",") : "";
+
+  const isTargetEditionDirty = adminContext !== null && adminEditionIdInput !== adminContextEditionId;
+  const isEntryDeadlineDirty = adminContext !== null && adminEntryDeadline !== adminContextEntryDeadline;
+  const isReserveBudgetDirty = adminContext !== null && adminReserveBudget !== adminContextReserveBudget;
+  const isRequiredNationalityDirty =
+    adminContext !== null && adminRequiredNationality.trim().toUpperCase() !== adminContextRequiredNationality;
+  const isDoublePointsStagesDirty =
+    adminContext !== null && normalizeStageList(adminDoublePointsStages) !== normalizeStageList(adminContextDoublePointsStages);
 
   const resetStandingsFilters = () => {
     setStandingsPlayerQuery("");
@@ -1302,7 +1329,23 @@ export default function App() {
             </section>
 
             <section className="list-card admin-card">
-              <h3>Target edition</h3>
+              <div className="admin-card__header">
+                <h3>Target edition</h3>
+                <div className="admin-card__actions">
+                  {isTargetEditionDirty && <span className="active-chip">Changed</span>}
+                  {isTargetEditionDirty && (
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() => {
+                        setAdminEditionIdInput(adminContextEditionId);
+                      }}
+                    >
+                      Reset target edition
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="admin-form-grid">
                 <label className="rider-filter">
                   <span>Edition id</span>
@@ -1320,7 +1363,23 @@ export default function App() {
             </section>
 
             <section className="list-card admin-card">
-              <h3>Entry deadline</h3>
+              <div className="admin-card__header">
+                <h3>Entry deadline</h3>
+                <div className="admin-card__actions">
+                  {isEntryDeadlineDirty && <span className="active-chip">Changed</span>}
+                  {isEntryDeadlineDirty && (
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() => {
+                        setAdminEntryDeadline(adminContextEntryDeadline);
+                      }}
+                    >
+                      Reset deadline
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="admin-form-grid">
                 <label className="rider-filter">
                   <span>Deadline (local)</span>
@@ -1346,7 +1405,23 @@ export default function App() {
             </section>
 
             <section className="list-card admin-card">
-              <h3>Reserve budget</h3>
+              <div className="admin-card__header">
+                <h3>Reserve budget</h3>
+                <div className="admin-card__actions">
+                  {isReserveBudgetDirty && <span className="active-chip">Changed</span>}
+                  {isReserveBudgetDirty && (
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() => {
+                        setAdminReserveBudget(adminContextReserveBudget);
+                      }}
+                    >
+                      Reset reserve budget
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="admin-form-grid">
                 <label className="rider-filter">
                   <span>Reserve budget</span>
@@ -1374,7 +1449,23 @@ export default function App() {
             </section>
 
             <section className="list-card admin-card">
-              <h3>Required nationality</h3>
+              <div className="admin-card__header">
+                <h3>Required nationality</h3>
+                <div className="admin-card__actions">
+                  {isRequiredNationalityDirty && <span className="active-chip">Changed</span>}
+                  {isRequiredNationalityDirty && (
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() => {
+                        setAdminRequiredNationality(adminContextRequiredNationality);
+                      }}
+                    >
+                      Reset nationality
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="admin-form-grid">
                 <label className="rider-filter">
                   <span>3-letter code</span>
@@ -1401,7 +1492,23 @@ export default function App() {
             </section>
 
             <section className="list-card admin-card">
-              <h3>Double points stages</h3>
+              <div className="admin-card__header">
+                <h3>Double points stages</h3>
+                <div className="admin-card__actions">
+                  {isDoublePointsStagesDirty && <span className="active-chip">Changed</span>}
+                  {isDoublePointsStagesDirty && (
+                    <button
+                      type="button"
+                      className="small-button"
+                      onClick={() => {
+                        setAdminDoublePointsStages(adminContextDoublePointsStages);
+                      }}
+                    >
+                      Reset stages
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="admin-form-grid">
                 <label className="rider-filter">
                   <span>Comma-separated stages</span>
