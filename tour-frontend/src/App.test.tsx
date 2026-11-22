@@ -149,6 +149,7 @@ describe("App admin MVP flows", () => {
       expect(getInputByLabel("3-letter code").value).toBe("FRA");
       expect(getInputByLabel("Comma-separated stages").value).toBe("4,9");
       expect(getInputByLabel("Deadline (local)").value).not.toBe("");
+      expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", true);
     });
 
     expect(screen.getByText("Edition 2027 - Stage 4")).toBeDefined();
@@ -157,9 +158,11 @@ describe("App admin MVP flows", () => {
     expect(screen.queryByRole("button", { name: "Reset reserve budget" })).toBeNull();
 
     setInputValue("Reserve budget", "19");
+    expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", false);
     expect(screen.getByRole("button", { name: "Reset reserve budget" })).toBeDefined();
     fireEvent.click(screen.getByRole("button", { name: "Reset reserve budget" }));
     expect(getInputByLabel("Reserve budget").value).toBe("18");
+    expect(screen.getByRole("button", { name: "Save reserve budget" })).toHaveProperty("disabled", true);
     expect(screen.queryByRole("button", { name: "Reset reserve budget" })).toBeNull();
 
     setInputValue("Comma-separated stages", "9,4");

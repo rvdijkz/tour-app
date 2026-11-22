@@ -225,6 +225,10 @@ export default function App() {
     adminContext !== null && adminRequiredNationality.trim().toUpperCase() !== adminContextRequiredNationality;
   const isDoublePointsStagesDirty =
     adminContext !== null && normalizeStageList(adminDoublePointsStages) !== normalizeStageList(adminContextDoublePointsStages);
+  const canSaveEntryDeadline = adminContext === null || isEntryDeadlineDirty;
+  const canSaveReserveBudget = adminContext === null || isReserveBudgetDirty;
+  const canSaveRequiredNationality = adminContext === null || isRequiredNationalityDirty;
+  const canSaveDoublePointsStages = adminContext === null || isDoublePointsStagesDirty;
 
   const resetStandingsFilters = () => {
     setStandingsPlayerQuery("");
@@ -1458,7 +1462,7 @@ export default function App() {
                 <button
                   type="button"
                   className="small-button"
-                  disabled={isLoadingAdmin}
+                  disabled={isLoadingAdmin || !canSaveEntryDeadline}
                   onClick={() => {
                     void saveEditionDeadline();
                   }}
@@ -1503,7 +1507,7 @@ export default function App() {
                 <button
                   type="button"
                   className="small-button"
-                  disabled={isLoadingAdmin}
+                  disabled={isLoadingAdmin || !canSaveReserveBudget}
                   onClick={() => {
                     void saveReserveBudget();
                   }}
@@ -1547,7 +1551,7 @@ export default function App() {
                 <button
                   type="button"
                   className="small-button"
-                  disabled={isLoadingAdmin}
+                  disabled={isLoadingAdmin || !canSaveRequiredNationality}
                   onClick={() => {
                     void saveRequiredNationality();
                   }}
@@ -1591,7 +1595,7 @@ export default function App() {
                 <button
                   type="button"
                   className="small-button"
-                  disabled={isLoadingAdmin}
+                  disabled={isLoadingAdmin || !canSaveDoublePointsStages}
                   onClick={() => {
                     void saveDoublePointsStages();
                   }}
